@@ -117,7 +117,7 @@ function makePlayer(x, y, keyCodes) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
-  var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
+  var sprite = makeSprite(40, 40, "../media/hat_new_2.png");
   
   var player = makeAgent();
   

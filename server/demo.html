@@ -1,0 +1,25 @@
+<html>
+<head>
+	<title>dodokiller</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+	<script src="json.js"></script>
+	<script src="http://cdn.socket.io/stable/socket.io.js"></script>
+	<script> 
+		var socket = new io.Socket(null, { port: 8080 }); 
+		socket.connect();
+	 	socket.on('connect', function(o) {
+			console.log('connect');
+		});
+	 	socket.on('message', function(o) { 
+			$('#log').append($('<div>').text(o.time));
+		}); 
+	 	socket.on('disconnect', function(o) { console.log(o) });
+	</script>
+	
+</head>
+<body>
+	<h1>server demo</h1>
+	<div id="log"></div>
+</body>
+</html>
+
