@@ -110,7 +110,7 @@ function makePlayer(x, y, keyCodes) {
   
   // var div = $("<div style='position:absolute;width:40px;height:40px;background-image:url(../media/hat_p1_sheet.png)'></div>");
   // $("body").append(div);
-  var sprite = new Spritesheet("id" + keyCodes.left, x, y, 1440, 60, 40, 60, 0, "../media/hat_new_2.png");
+  var sprite = new Spritesheet("id" + keyCodes.left, x, y, 1440, 40, 40, 40, 0, "../media/hat_3.png");
   
   var player = makeAgent();
   

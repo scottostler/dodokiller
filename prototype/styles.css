@@ -11,4 +11,11 @@
     position:absolute;
     left : 20px;
     top: 20px;
+    width:1000px;
+    height:800px;
+    background:#cfce72;
+}
+
+body{
+    background: #38420b;
 }
