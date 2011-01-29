@@ -34,7 +34,11 @@ game state consists of
 
 
 
-
+function makeRandomDodos() {
+  for (var i = 0; i < 10; i++) {
+    makeDodo(Math.random() * 500, Math.random() * 500);
+  }
+}
 
 function gameInit() {
   // position players
@@ -44,16 +48,17 @@ function gameInit() {
     left: 65,
     right: 68,
     shoot: 16
-  });
+  }, "Player 1");
   makePlayer(300, 300, {
     forward: 80,
     backward: 186,
     left: 76,
     right: 222,
     shoot: 77
-  });
+  }, "Player 2");
   
   // position dodos
+  makeRandomDodos();
 }
 
 function gameLoop() {
@@ -64,9 +69,20 @@ function gameLoop() {
   // kill dodos
   
   $.each(agents, function (i, agent) {
-    agent.update();
-    agent.draw();
+    if (!agent.destroyed) {
+      agent.update();
+      agent.draw();
+    }
   });
+  
+  // clean up destroyed agents
+  var i = 0;
+  while (i < agents.length) {
+    var agent = agents[i];
+    if (agent.destroyed) {
+      agents.splice(i, 1);
+    } else i++;
+  }
   
   setTimeout(gameLoop, env.gameSpeed);
 }
@@ -79,11 +95,12 @@ $(function () {
 var env = {
   gameSpeed: 1, // frames per "millisecond" (changes based on browser...)
   playingFieldDimensions: [500, 500], // pixels
-  playerRotateSpeed: 2*Math.PI/200, // radians per frame
-  playerMoveSpeed: 1, // pixels per frame
-  playerReloadTime: 100, // frames
-  bulletMoveSpeed: 5, // pixels per frame
-  bulletTravelDistance: 100 // pixels
+  playerRotateSpeed: 2*Math.PI/170, // radians per frame
+  playerMoveSpeed: 1.8, // pixels per frame
+  playerReloadTime: 40, // frames
+  bulletMoveSpeed: 4, // pixels per frame
+  bulletTravelDistance: 200, // pixels
+  dodoRadius: 20 // pixels, refers to how close bullets have to be to kill
 };
 
 
@@ -93,83 +110,142 @@ function makeAgent() {
   var agent = {};
   agents.push(agent);
   agent.destroy = function () {
-    var found;
-    $.each(agents, function (i, a) {
-      if (a === agent) found = i;
-    });
-    agents.splice(found, 1);
+    agent.destroyed = true;
   };
   
   return agent;
 }
 
-function makePlayer(x, y, keyCodes) {
+function makePlayer(x, y, keyCodes, name) {
   var facing = 0;
-  var position = {x: x, y: y};
   var readyToShoot = 0; // 0 means ready to shoot
   
-  // var div = $("<div style='position:absolute;width:40px;height:40px;background-image:url(../media/hat_p1_sheet.png)'></div>");
-  // $("body").append(div);
-  var sprite = new Spritesheet("id" + keyCodes.left, x, y, 1440, 40, 40, 40, 0, "../media/hat_3.png");
+  var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
+  // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
+  
+  player.shoot = function () {
+    if (readyToShoot == 0) {
+      makeBullet(x, y, facing, player);
+      readyToShoot = env.playerReloadTime;
+    }
+  };
   
   player.update = function () {
     // based on keyCodes (specific to the player) and keyboardState, update facing and position
     if (keyboardState[keyCodes.left]) {
       facing -= env.playerRotateSpeed;
-      console.log(facing);
     }
     if (keyboardState[keyCodes.right]) {
       facing += env.playerRotateSpeed;
-      console.log(facing);
     }
     if (keyboardState[keyCodes.forward]) {
-      position.x += Math.cos(facing) * env.playerMoveSpeed;
-      position.y += Math.sin(facing) * env.playerMoveSpeed;
-      console.log([position.x, position.y]);
+      x += Math.cos(facing) * env.playerMoveSpeed;
+      y += Math.sin(facing) * env.playerMoveSpeed;
     }
     if (keyboardState[keyCodes.backward]) {
-      position.x -= Math.cos(facing) * env.playerMoveSpeed;
-      position.y -= Math.sin(facing) * env.playerMoveSpeed;
-      console.log([position.x, position.y]);
+      x -= Math.cos(facing) * env.playerMoveSpeed;
+      y -= Math.sin(facing) * env.playerMoveSpeed;
+    }
+    
+    if (keyboardState[keyCodes.shoot]) {
+      player.shoot();
     }
     
     // bullets
     // design decision: hold to keep firing or fire on every key press?
-    if (readyToShoot == 0) {
-      if (keyboardState[keyCodes.shoot]) {
-        
-      }
-    } else {
-      readyToShoot--;
-    }
-    
-    
-    // if shooting, make a bullet
-    // TODO
+    if (readyToShoot > 0) readyToShoot--;
     
   };
   
   player.draw = function () {
-    // div.css("background-position", "0 0");
-    // div.css("left", position.x);
-    // div.css("top", position.y);
-    sprite.x = position.x;
-    sprite.y = position.y;
-    sprite.activeSprite = Math.round((facing / (Math.PI*2))*36 - 9) % 36;
-    if (sprite.activeSprite < 0) sprite.activeSprite += 36;
-    sprite.draw();
+    sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36) % 36);
+  };
+  
+  player.win = function () {
+    $("#wins").html(name + " Wins!");
+    // make more dodos
+    makeRandomDodos();
   };
   
   return player;
 }
 
-function makeDodo() {
+function makeDodo(x, y) {
+  var dodo = makeAgent();
   
+  var sprite = makeSprite(40, 40, "../media/dodo.png");
+  
+  dodo.update = function () {
+    
+  };
+  dodo.draw = function () {
+    sprite.draw(x, y, 0);
+  };
+  
+  dodo.isHit = function (bulletX, bulletY) {
+    var distance = Math.sqrt(Math.pow(bulletX - x, 2) + Math.pow(bulletY - y, 2));
+    if (distance < env.dodoRadius) return true;
+    else return false;
+  };
+  
+  var oldDestroy = dodo.destroy;
+  dodo.destroy = function () {
+    sprite.destroy();
+    oldDestroy();
+  };
 }
 
-function makeBullet() {
+function makeBullet(x, y, facing, player) {
+  var distanceTravelled = 0;
   
+  var bullet = makeAgent();
+  
+  var sprite = makeSprite(6, 6, "../media/bullet.png");
+  
+  bullet.update = function () {
+    x += Math.cos(facing) * env.bulletMoveSpeed;
+    y += Math.sin(facing) * env.bulletMoveSpeed;
+    
+    distanceTravelled += env.bulletMoveSpeed;
+    if (distanceTravelled >= env.bulletTravelDistance) {
+      bullet.destroy();
+    }
+    
+    // check if it killed a dodo
+    var found = false;
+    $.each(agents, function (i, agent) {
+      if (agent.isHit && agent.isHit(x, y)) {
+        found = agent;
+      }
+    });
+    if (found) {
+      // kill the dodo!
+      found.destroy();
+      bullet.destroy();
+      
+      // check if last dodo
+      var nomore = true;
+      $.each(agents, function (i, agent) {
+        if (agent.isHit && !agent.destroyed) {
+          nomore = false;
+        }
+      });
+      if (nomore) {
+        player.win();
+      }
+    }
+  };
+  
+  bullet.draw = function () {
+    sprite.draw(x, y, 0);
+  };
+  
+  var oldDestroy = bullet.destroy;
+  bullet.destroy = function () {
+    sprite.destroy();
+    oldDestroy();
+  };
 }
 
