@@ -34,7 +34,11 @@ game state consists of
 
 
 
-
+function makeRandomDodos() {
+  for (var i = 0; i < 10; i++) {
+    makeDodo(Math.random() * 500, Math.random() * 500);
+  }
+}
 
 function gameInit() {
   // position players
@@ -44,19 +48,17 @@ function gameInit() {
     left: 65,
     right: 68,
     shoot: 16
-  });
+  }, "Player 1");
   makePlayer(300, 300, {
     forward: 80,
     backward: 186,
     left: 76,
     right: 222,
     shoot: 77
-  });
+  }, "Player 2");
   
   // position dodos
-  for (var i = 0; i < 10; i++) {
-    makeDodo(Math.random() * 500, Math.random() * 500);
-  }
+  makeRandomDodos();
 }
 
 function gameLoop() {
@@ -93,10 +95,10 @@ $(function () {
 var env = {
   gameSpeed: 1, // frames per "millisecond" (changes based on browser...)
   playingFieldDimensions: [500, 500], // pixels
-  playerRotateSpeed: 2*Math.PI/200, // radians per frame
-  playerMoveSpeed: 1, // pixels per frame
+  playerRotateSpeed: 2*Math.PI/170, // radians per frame
+  playerMoveSpeed: 1.8, // pixels per frame
   playerReloadTime: 40, // frames
-  bulletMoveSpeed: 3, // pixels per frame
+  bulletMoveSpeed: 4, // pixels per frame
   bulletTravelDistance: 200, // pixels
   dodoRadius: 20 // pixels, refers to how close bullets have to be to kill
 };
@@ -114,17 +116,18 @@ function makeAgent() {
   return agent;
 }
 
-function makePlayer(x, y, keyCodes) {
+function makePlayer(x, y, keyCodes, name) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
   var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
+  // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
   
   player.shoot = function () {
     if (readyToShoot == 0) {
-      makeBullet(x, y, facing);
+      makeBullet(x, y, facing, player);
       readyToShoot = env.playerReloadTime;
     }
   };
@@ -160,6 +163,12 @@ function makePlayer(x, y, keyCodes) {
     sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36) % 36);
   };
   
+  player.win = function () {
+    $("#wins").html(name + " Wins!");
+    // make more dodos
+    makeRandomDodos();
+  };
+  
   return player;
 }
 
@@ -188,7 +197,7 @@ function makeDodo(x, y) {
   };
 }
 
-function makeBullet(x, y, facing) {
+function makeBullet(x, y, facing, player) {
   var distanceTravelled = 0;
   
   var bullet = makeAgent();
@@ -212,8 +221,20 @@ function makeBullet(x, y, facing) {
       }
     });
     if (found) {
+      // kill the dodo!
       found.destroy();
       bullet.destroy();
+      
+      // check if last dodo
+      var nomore = true;
+      $.each(agents, function (i, agent) {
+        if (agent.isHit && !agent.destroyed) {
+          nomore = false;
+        }
+      });
+      if (nomore) {
+        player.win();
+      }
     }
   };
   
