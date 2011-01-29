@@ -7,7 +7,7 @@ function makeSprite(width, height, source) {
   
   return {
     draw: function (x, y, activeSprite) {
-      var sx = -activeSprite * width;
+      var sx = activeSprite * width;
       var sy = 0;
       div.css("background-position", sx + "px " + sy + "px");
       div.css("left", x - width/2);

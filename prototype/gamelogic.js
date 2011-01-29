@@ -97,7 +97,8 @@ var env = {
   playerMoveSpeed: 1, // pixels per frame
   playerReloadTime: 40, // frames
   bulletMoveSpeed: 3, // pixels per frame
-  bulletTravelDistance: 200 // pixels
+  bulletTravelDistance: 200, // pixels
+  dodoRadius: 20 // pixels, refers to how close bullets have to be to kill
 };
 
 
@@ -117,7 +118,7 @@ function makePlayer(x, y, keyCodes) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
-  var sprite = makeSprite(40, 40, "../media/hat_new_2.png");
+  var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
   
   var player = makeAgent();
   
@@ -156,7 +157,7 @@ function makePlayer(x, y, keyCodes) {
   };
   
   player.draw = function () {
-    sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36 - 9) % 36);
+    sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36) % 36);
   };
   
   return player;
@@ -177,9 +178,8 @@ function makeDodo(x, y) {
   };
   
   dodo.isHit = function (bulletX, bulletY) {
-    var distance = Math.sqrt((bulletX - x)^2 + (bulletY - y)^2);
-    console.log(distance);
-    if (distance < 20) return true;
+    var distance = Math.sqrt(Math.pow(bulletX - x, 2) + Math.pow(bulletY - y, 2));
+    if (distance < env.dodoRadius) return true;
     else return false;
   };
   
@@ -195,8 +195,7 @@ function makeBullet(x, y, facing) {
   
   var bullet = makeAgent();
   
-  var div = $("<div style='position:absolute;width:4px;height:4px;background-color:#000'></div>");
-  $("#canvas").append(div);
+  var sprite = makeSprite(6, 6, "../media/bullet.png");
   
   bullet.update = function () {
     x += Math.cos(facing) * env.bulletMoveSpeed;
@@ -221,13 +220,12 @@ function makeBullet(x, y, facing) {
   };
   
   bullet.draw = function () {
-    div.css("left", x);
-    div.css("top", y);
+    sprite.draw(x, y, 0);
   };
   
   var oldDestroy = bullet.destroy;
   bullet.destroy = function () {
-    div.remove();
+    sprite.destroy();
     oldDestroy();
   };
 }
