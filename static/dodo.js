@@ -7,7 +7,21 @@ function Sprite(x, y, height, width, sprite) {
     this.sprite.src = sprite;
 }
 
+function Spritesheet(x, y, width, height, spriteWidth, activeSprite, spirte) {
+    this.x = x;
+    this.y = y;
+    this.height = height;
+    this.width = width;
+    this.spriteWidht = spriteWidth;
+    this.activeSprite = activeSprite;
+    this.sprite = sprite;
+}
+
 Sprite.prototype.draw = function(ctx) {
+    ctx.drawImage(this.sprite, this.x, this.y);
+};
+
+Spritesheet.prototype.draw = function(ctx) {
     ctx.drawImage(this.sprite, this.x, this.y);
 };
 
@@ -15,6 +29,7 @@ function Game(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.sprites = [];
+    this.spritesheets = [];
     this.targetFPS = 30;
 }
 
@@ -22,11 +37,21 @@ Game.prototype.addSprite = function(sprite) {
     this.sprites.push(sprite);
 };
 
+Game.prototype.addSpritesheet = function(spritesheet) {
+    this.spritesheets.push(spritesheet);
+};
+
 Game.prototype.draw = function() {
     this.ctx.clearRect(0, 0, 1000, 1000);
+   
     for (var i in this.sprites) {
         var sprite = this.sprites[i];
         sprite.draw(this.ctx);
+    }
+    
+    for (var i in this.sprite) {
+        var spritesheet = this.spritesheets[i];
+        spritesheet.draw(this.ctx);
     }
 };
 
@@ -88,13 +113,13 @@ function initGame(canvasID) {
 
     var game = new Game(canvasElem);
     
-    game.addSprite(new Sprite(
+    /*game.addSprite(new Sprite(
         0, 0, 50, 50,
-        'http://josephsmith.net/Static%20Images/howard_w_hunter_SI.jpg'));
-
-    game.addSprite(new Sprite(
-        100, 100, 50, 50,
-        'http://josephsmith.net/Static%20Images/howard_w_hunter_SI.jpg'));
+        'http://josephsmith.net/Static%20Images/howard_w_hunter_SI.jpg'));*/
+        
+    game.addSpritesheet(new Spritesheet(
+        0, 0, 1440, 40, 40, 0, "../media/hat_p1_spritesheet.png"
+        ));
 
     game.enterRunLoop();
 }

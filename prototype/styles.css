@@ -1,0 +1,14 @@
+.spritesheet {
+    position: absolute;
+    overflow: hidden;
+}
+
+.spritesheet .image {
+    position: absolute;
+}
+#canvas {
+    border: 1px solid black;
+    position:absolute;
+    left : 20px;
+    top: 20px;
+}
