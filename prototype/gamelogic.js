@@ -2,6 +2,7 @@
 
 game parameters
   game speed
+  playing field dimensions
   player rotate speed
   player move speed
   bullet move speed
