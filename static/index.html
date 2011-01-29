@@ -1,0 +1,26 @@
+<html>
+<head>
+  <title>dodokiller</title>
+  <style>
+    #game {
+      width: 500;
+      height: 500;
+      border: 1px solid black;
+    }
+  </style>
+  <script src="dodo.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+  <script>
+    $(function() {
+      initGame('game');
+    });
+  </script>
+</head>
+<body>
+  <h1>Dodokiller</h1>
+  <canvas id="game"></canvas>
+  <div id="instructions">
+    WASD to move, Space to fire
+  </div>
+</body>
+</html>
