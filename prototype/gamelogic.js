@@ -36,14 +36,21 @@ function gameInit() {
   // position players
   
   // position dodos
+  testsheet = new Spritesheet("name", 50, 50, 1440, 40, 40, 40, 0, "../media/hat_p1_sheet.png");
+  
+  
+ setInterval(gameLoop, 10);
 }
 
 function gameLoop() {
   // look at keyboard and move players
-  players[0].update(keyCodes[0]);
-  players[1].update(keyCodes[1]);
+  //players[0].update(keyCodes[0]);
+  //players[1].update(keyCodes[1]);
   
-  // move bullets
+  testsheet.draw();
+  testsheet.activeSprite = (testsheet.activeSprite + 1) % 36;
+  
+   // move bullets
   
   // kill dodos
   
