@@ -108,8 +108,9 @@ function makePlayer(x, y, keyCodes) {
   var position = {x: x, y: y};
   var readyToShoot = 0; // 0 means ready to shoot
   
-  var div = $("<div style='position:absolute;width:10px;height:10px;background-color:#f00'></div>");
-  $("body").append(div);
+  // var div = $("<div style='position:absolute;width:40px;height:40px;background-image:url(../media/hat_p1_sheet.png)'></div>");
+  // $("body").append(div);
+  var sprite = new Spritesheet("id" + keyCodes.left, x, y, 1440, 40, 40, 40, 0, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
   
@@ -151,9 +152,14 @@ function makePlayer(x, y, keyCodes) {
   };
   
   player.draw = function () {
-    // TODO move the div to the right place, change its sprite
-    div.css("left", position.x);
-    div.css("top", position.y);
+    // div.css("background-position", "0 0");
+    // div.css("left", position.x);
+    // div.css("top", position.y);
+    sprite.x = position.x;
+    sprite.y = position.y;
+    sprite.activeSprite = Math.round((facing / (Math.PI*2))*36 - 9) % 36;
+    if (sprite.activeSprite < 0) sprite.activeSprite += 36;
+    sprite.draw();
   };
   
   return player;
