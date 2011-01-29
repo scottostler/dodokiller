@@ -32,69 +32,130 @@ game state consists of
 
 
 
+
+
+
+
 function gameInit() {
   // position players
+  makePlayer(200, 200, {
+    forward: 87,
+    backward: 83,
+    left: 65,
+    right: 68,
+    shoot: 16
+  });
+  makePlayer(300, 300, {
+    forward: 80,
+    backward: 186,
+    left: 76,
+    right: 222,
+    shoot: 77
+  });
   
   // position dodos
 }
 
 function gameLoop() {
   // look at keyboard and move players
-  players[0].update(keyCodes[0]);
-  players[1].update(keyCodes[1]);
   
   // move bullets
   
   // kill dodos
   
+  $.each(agents, function (i, agent) {
+    agent.update();
+    agent.draw();
+  });
   
+  setTimeout(gameLoop, env.gameSpeed);
 }
 
-var keyCodes = [
-  {
-    forward: 87,
-    backward: 83,
-    left: 65,
-    right: 68,
-    shoot: 16
-  },
-  {
-    forward: 80,
-    backward: 186,
-    left: 76,
-    right: 222,
-    shoot: 77
-  }
-];
+$(function () {
+  gameInit();
+  gameLoop();
+});
+
+var env = {
+  gameSpeed: 1, // frames per "millisecond" (changes based on browser...)
+  playingFieldDimensions: [500, 500], // pixels
+  playerRotateSpeed: 2*Math.PI/200, // radians per frame
+  playerMoveSpeed: 1, // pixels per frame
+  playerReloadTime: 100, // frames
+  bulletMoveSpeed: 5, // pixels per frame
+  bulletTravelDistance: 100 // pixels
+};
 
 
+var agents = [];
 
-
-var players = [];
-var dodos = [];
-var bullets = [];
-
-function makePlayer(x, y) {
-  var facing = 0;
-  var position = [x, y];
-  
-  var div = $(body).append("<div></div>"); // TODO this will probably be more specific...
-  
-  player = {
-    update: function (keyCodes) {
-      // based on keyCodes (specific to the player) and keyboardState, update facing and position
-      
-      
-      // if shooting, make a bullet
-      // TODO
-      
-    },
-    draw: function () {
-      // TODO move the div to the right place, change its sprite
-    }
+function makeAgent() {
+  var agent = {};
+  agents.push(agent);
+  agent.destroy = function () {
+    var found;
+    $.each(agents, function (i, a) {
+      if (a === agent) found = i;
+    });
+    agents.splice(found, 1);
   };
   
-  players.push(player);
+  return agent;
+}
+
+function makePlayer(x, y, keyCodes) {
+  var facing = 0;
+  var position = {x: x, y: y};
+  var readyToShoot = 0; // 0 means ready to shoot
+  
+  var div = $("<div style='position:absolute;width:10px;height:10px;background-color:#f00'></div>");
+  $("body").append(div);
+  
+  var player = makeAgent();
+  
+  player.update = function () {
+    // based on keyCodes (specific to the player) and keyboardState, update facing and position
+    if (keyboardState[keyCodes.left]) {
+      facing -= env.playerRotateSpeed;
+      console.log(facing);
+    }
+    if (keyboardState[keyCodes.right]) {
+      facing += env.playerRotateSpeed;
+      console.log(facing);
+    }
+    if (keyboardState[keyCodes.forward]) {
+      position.x += Math.cos(facing) * env.playerMoveSpeed;
+      position.y += Math.sin(facing) * env.playerMoveSpeed;
+      console.log([position.x, position.y]);
+    }
+    if (keyboardState[keyCodes.backward]) {
+      position.x -= Math.cos(facing) * env.playerMoveSpeed;
+      position.y -= Math.sin(facing) * env.playerMoveSpeed;
+      console.log([position.x, position.y]);
+    }
+    
+    // bullets
+    // design decision: hold to keep firing or fire on every key press?
+    if (readyToShoot == 0) {
+      if (keyboardState[keyCodes.shoot]) {
+        
+      }
+    } else {
+      readyToShoot--;
+    }
+    
+    
+    // if shooting, make a bullet
+    // TODO
+    
+  };
+  
+  player.draw = function () {
+    // TODO move the div to the right place, change its sprite
+    div.css("left", position.x);
+    div.css("top", position.y);
+  };
+  
   return player;
 }
 
