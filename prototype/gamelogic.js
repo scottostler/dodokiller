@@ -64,9 +64,20 @@ function gameLoop() {
   // kill dodos
   
   $.each(agents, function (i, agent) {
-    agent.update();
-    agent.draw();
+    if (!agent.destroyed) {
+      agent.update();
+      agent.draw();
+    }
   });
+  
+  // clean up destroyed agents
+  var i = 0;
+  while (i < agents.length) {
+    var agent = agents[i];
+    if (agent.destroyed) {
+      agents.splice(i, 1);
+    } else i++;
+  }
   
   setTimeout(gameLoop, env.gameSpeed);
 }
@@ -81,9 +92,9 @@ var env = {
   playingFieldDimensions: [500, 500], // pixels
   playerRotateSpeed: 2*Math.PI/200, // radians per frame
   playerMoveSpeed: 1, // pixels per frame
-  playerReloadTime: 100, // frames
-  bulletMoveSpeed: 5, // pixels per frame
-  bulletTravelDistance: 100 // pixels
+  playerReloadTime: 40, // frames
+  bulletMoveSpeed: 3, // pixels per frame
+  bulletTravelDistance: 200 // pixels
 };
 
 
@@ -93,11 +104,7 @@ function makeAgent() {
   var agent = {};
   agents.push(agent);
   agent.destroy = function () {
-    var found;
-    $.each(agents, function (i, a) {
-      if (a === agent) found = i;
-    });
-    agents.splice(found, 1);
+    agent.destroyed = true;
   };
   
   return agent;
@@ -105,12 +112,18 @@ function makeAgent() {
 
 function makePlayer(x, y, keyCodes) {
   var facing = 0;
-  var position = {x: x, y: y};
   var readyToShoot = 0; // 0 means ready to shoot
   
   var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
+  
+  player.shoot = function () {
+    if (readyToShoot == 0) {
+      makeBullet(x, y, facing);
+      readyToShoot = env.playerReloadTime;
+    }
+  };
   
   player.update = function () {
     // based on keyCodes (specific to the player) and keyboardState, update facing and position
@@ -121,28 +134,26 @@ function makePlayer(x, y, keyCodes) {
       facing += env.playerRotateSpeed;
     }
     if (keyboardState[keyCodes.forward]) {
-      position.x += Math.cos(facing) * env.playerMoveSpeed;
-      position.y += Math.sin(facing) * env.playerMoveSpeed;
+      x += Math.cos(facing) * env.playerMoveSpeed;
+      y += Math.sin(facing) * env.playerMoveSpeed;
     }
     if (keyboardState[keyCodes.backward]) {
-      position.x -= Math.cos(facing) * env.playerMoveSpeed;
-      position.y -= Math.sin(facing) * env.playerMoveSpeed;
+      x -= Math.cos(facing) * env.playerMoveSpeed;
+      y -= Math.sin(facing) * env.playerMoveSpeed;
+    }
+    
+    if (keyboardState[keyCodes.shoot]) {
+      player.shoot();
     }
     
     // bullets
     // design decision: hold to keep firing or fire on every key press?
-    if (readyToShoot == 0) {
-      if (keyboardState[keyCodes.shoot]) {
-        
-      }
-    } else {
-      readyToShoot--;
-    }
+    if (readyToShoot > 0) readyToShoot--;
     
   };
   
   player.draw = function () {
-    sprite.draw(position.x, position.y, Math.round((facing / (Math.PI*2))*36 - 9) % 36);
+    sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36 - 9) % 36);
   };
   
   return player;
@@ -152,7 +163,33 @@ function makeDodo() {
   
 }
 
-function makeBullet() {
+function makeBullet(x, y, facing) {
+  var distanceTravelled = 0;
   
+  var bullet = makeAgent();
+  
+  var div = $("<div style='position:absolute;width:4px;height:4px;background-color:#000'></div>");
+  $("#canvas").append(div);
+  
+  bullet.update = function () {
+    x += Math.cos(facing) * env.bulletMoveSpeed;
+    y += Math.sin(facing) * env.bulletMoveSpeed;
+    
+    distanceTravelled += env.bulletMoveSpeed;
+    if (distanceTravelled >= env.bulletTravelDistance) {
+      bullet.destroy();
+    }
+  };
+  
+  bullet.draw = function () {
+    div.css("left", x);
+    div.css("top", y);
+  };
+  
+  var oldDestroy = bullet.destroy;
+  bullet.destroy = function () {
+    div.remove();
+    oldDestroy();
+  };
 }
 
