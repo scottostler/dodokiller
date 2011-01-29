@@ -54,6 +54,9 @@ function gameInit() {
   });
   
   // position dodos
+  for (var i = 0; i < 10; i++) {
+    makeDodo(Math.random() * 500, Math.random() * 500);
+  }
 }
 
 function gameLoop() {
@@ -159,8 +162,32 @@ function makePlayer(x, y, keyCodes) {
   return player;
 }
 
-function makeDodo() {
+function makeDodo(x, y) {
+  var dodo = makeAgent();
   
+  var div = $("<div style='position:absolute;width:40px;height:40px;background-color:#009'></div>");
+  $("#canvas").append(div);
+  
+  dodo.update = function () {
+    
+  };
+  dodo.draw = function () {
+    div.css("left", x - 20);
+    div.css("top", y - 20);
+  };
+  
+  dodo.isHit = function (bulletX, bulletY) {
+    var distance = Math.sqrt((bulletX - x)^2 + (bulletY - y)^2);
+    console.log(distance);
+    if (distance < 20) return true;
+    else return false;
+  };
+  
+  var oldDestroy = dodo.destroy;
+  dodo.destroy = function () {
+    div.remove();
+    oldDestroy();
+  };
 }
 
 function makeBullet(x, y, facing) {
@@ -177,6 +204,18 @@ function makeBullet(x, y, facing) {
     
     distanceTravelled += env.bulletMoveSpeed;
     if (distanceTravelled >= env.bulletTravelDistance) {
+      bullet.destroy();
+    }
+    
+    // check if it killed a dodo
+    var found = false;
+    $.each(agents, function (i, agent) {
+      if (agent.isHit && agent.isHit(x, y)) {
+        found = agent;
+      }
+    });
+    if (found) {
+      found.destroy();
       bullet.destroy();
     }
   };
