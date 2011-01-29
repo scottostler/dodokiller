@@ -1,4 +1,4 @@
-function Spritesheet(name, x, y, width, height, spriteWidth, activeSprite, source) {
+function Spritesheet(name, x, y, width, height, spriteWidth, spriteHeight, activeSprite, source) {
     this.name = name,
     this.x = x;
     this.y = y;
@@ -8,13 +8,16 @@ function Spritesheet(name, x, y, width, height, spriteWidth, activeSprite, sourc
     this.activeSprite = activeSprite;
     this.source = source;
     
-    this.jqdiv = $("#canvas").append("<div class='spritesheet' id='"+name+"'><div class='image'><img src='"+source+"'></div></div>");
-    this.jqimg = this.jqdiv.find(".image")[0];
+    $("#canvas").append("<div class='spritesheet' id='"+name+"'><div class='image'><img src='"+source+"'></div></div>");
+    this.jqdiv = $("#"+name);
+    $(this.jqdiv).css("width", spriteWidth);
+    $(this.jqdiv).css("height", spriteHeight);
+    this.jqimg = $("#"+name).find(".image")[0];
     
 }
 
 Spritesheet.prototype.draw = function() {
     this.jqdiv.css("left", this.x);
     this.jqdiv.css("top", this.y);
-    this.jqimg.css("left", - activeSprite * spriteWidth);
+    $(this.jqimg).css("left", - this.activeSprite * this.spriteWidth);
 }
