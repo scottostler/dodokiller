@@ -166,15 +166,13 @@ function makePlayer(x, y, keyCodes) {
 function makeDodo(x, y) {
   var dodo = makeAgent();
   
-  var div = $("<div style='position:absolute;width:40px;height:40px;background-color:#009'></div>");
-  $("#canvas").append(div);
+  var sprite = makeSprite(40, 40, "../media/dodo.png");
   
   dodo.update = function () {
     
   };
   dodo.draw = function () {
-    div.css("left", x - 20);
-    div.css("top", y - 20);
+    sprite.draw(x, y, 0);
   };
   
   dodo.isHit = function (bulletX, bulletY) {
@@ -185,7 +183,7 @@ function makeDodo(x, y) {
   
   var oldDestroy = dodo.destroy;
   dodo.destroy = function () {
-    div.remove();
+    sprite.destroy();
     oldDestroy();
   };
 }
