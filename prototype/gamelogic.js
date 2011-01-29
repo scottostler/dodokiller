@@ -110,7 +110,8 @@ function makePlayer(x, y, keyCodes) {
   
   // var div = $("<div style='position:absolute;width:40px;height:40px;background-image:url(../media/hat_p1_sheet.png)'></div>");
   // $("body").append(div);
-  var sprite = new Spritesheet("id" + keyCodes.left, x, y, 1440, 40, 40, 40, 0, "../media/hat_p1_sheet.png");
+  // var sprite = new Spritesheet("id" + keyCodes.left, x, y, 1440, 40, 40, 40, 0, "../media/hat_p1_sheet.png");
+  var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
   
@@ -155,11 +156,12 @@ function makePlayer(x, y, keyCodes) {
     // div.css("background-position", "0 0");
     // div.css("left", position.x);
     // div.css("top", position.y);
-    sprite.x = position.x;
-    sprite.y = position.y;
-    sprite.activeSprite = Math.round((facing / (Math.PI*2))*36 - 9) % 36;
-    if (sprite.activeSprite < 0) sprite.activeSprite += 36;
-    sprite.draw();
+    // sprite.x = position.x;
+    // sprite.y = position.y;
+    // sprite.activeSprite = Math.round((facing / (Math.PI*2))*36 - 9) % 36;
+    // if (sprite.activeSprite < 0) sprite.activeSprite += 36;
+    // sprite.draw();
+    sprite.draw(position.x, position.y, Math.round((facing / (Math.PI*2))*36 - 9) % 36);
   };
   
   return player;
