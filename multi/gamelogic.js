@@ -2,7 +2,7 @@ var worldModule = require('./world.js');
 
 var env = {
   gameSpeed: 10, // frames per "millisecond" (changes based on browser...)
-  playingFieldDimensions: [1600, 1200], // pixels
+  playingFieldDimensions: [600, 600], // pixels
   worldGridSize: 20, // pixel size of single world terrain tile
   worldFrequency: 0.005, // density of generated terrain
   playerRotateSpeed: 3*Math.PI/170, // radians per frame
@@ -11,7 +11,7 @@ var env = {
   bulletMoveSpeed: 8, // pixels per frame
   bulletTravelDistance: 300, // pixels
   dodoMoveSpeed: 0.8, // scaling factor for dodo velocity
-  dodoVelocityProbability: 0.992, // chance that a dodo with velocity will move in a frame
+  dodoVelocityChangeProbability: 0.992, // chance that a dodo with velocity will move in a frame
   dodoMoveProbability: 0.7, // chance that a dodo's velocity will be increased in a frame
   dodoVelocityThreshold: 5.0, // if dodo's velocity is below this, dodo stops moving
   dodoVelocityDecay: 0.95, // dodo's velocity diminishes by this each frame
@@ -114,11 +114,12 @@ function makeRandomCoordinate(paddingRadius) {
       }
     });
 
-    if (!found && !world.collide(x, y, true, paddingRadius))
+    if (!found && !world.collide(x, y, true, paddingRadius)) {
       return [x, y];        
     }
   }
 }
+
 
 function constrain(val, max, padding) {
   return Math.max(
@@ -291,6 +292,8 @@ function makePlayer(x, y, playerId, name) {
       env.delayBetweenRounds);
   };
   
+  player.isPlayer = true;
+  
   return player;
 }
 
@@ -402,7 +405,7 @@ function makeBullet(x, y, facing, player) {
     // check if it killed a dodo
     var found = false;
     agents.forEach(function (agent, i) {
-      if (!agent.destroyed && agent.isHit && agent.isHit(x, y)) {
+      if (!agent.isPlayer && !agent.destroyed && agent.isHit && agent.isHit(x, y)) {
         found = agent;
       }
     });
@@ -414,7 +417,7 @@ function makeBullet(x, y, facing, player) {
       // check if last dodo
       var nomore = true;
       agents.forEach(function (agent, i) {
-        if (agent.isHit && !agent.destroyed) {
+        if (!agent.isPlayer && agent.isHit && !agent.destroyed) {
           nomore = false;
         }
       });

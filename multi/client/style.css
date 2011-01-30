@@ -2,11 +2,17 @@
   position: absolute;
   width: 600px;
   height: 300px;
-  background-color: #fff;
+  background-color: #111;
+  color:#ccc;
   border: 1px solid #666;
   top: 50%; left: 50%; margin-top: -150px; margin-left: -300px;
-  
   text-align: center;
+}
+
+#instructions {
+    color:#bad32e;
+     font-family: "Georgia", "Times New Roman", serif;
+     font-size:14px;
 }
 
 #title {
@@ -36,14 +42,15 @@
     position:relative;
     left : 20px;
     top: 20px;
-    width:1600px;
-    height:1200px;
+    width:600px;
+    height:600px;
     background:#cfce72;
     background-image:url('../../media/tile-dry-ground.png');
 }
 
 body{
     background: #38420b;
+    font-family: "Georgia", "Times New Roman", serif;
 }
 
 .obstacle {
@@ -59,4 +66,8 @@ body{
     position: absolute;
     background: #2c3f65;
     background-image:url('../../media/tile-ocean.png');
+}
+
+.sprite {
+  z-index: 5;
 }

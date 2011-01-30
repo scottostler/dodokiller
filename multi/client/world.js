@@ -17,6 +17,10 @@ function makeWorld(width, height, gridSize) {
         world.height = h;
         
         world.gridSize = gs;
+        
+        $(".obstacle").remove();
+        $(".water").remove();
+
         world.objects = [];
         
         $.each(obs, function (i, ob) {

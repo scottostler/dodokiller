@@ -16,8 +16,8 @@
 </head>
 <body>
 
-  <audio id="snd_squawk" src="../../media/audio/magpie.ogg" preload="auto"></audio>
-  <audio id="snd_shot1" src="../../media/audio/ww2rifle.ogg" preload="auto"></audio>
+  <audio id="snd_squawk" src="../../media/audio/magpie.wav" preload="auto"></audio>
+  <audio id="snd_shot1" src="../../media/audio/ww2rifle.wav" preload="auto"></audio>
   <audio id="snd_shot2" src="../../media/audio/shotgun.ogg" preload="auto"></audio>
   <audio id="snd_music" src="../../media/audio/mozart.ogg" preload="auto"></audio>
   <audio id="snd_music_copland1" src="../../media/audio/copland-buckarooholiday.ogg" preload="auto"></audio>
@@ -30,14 +30,17 @@
   <div id="introscreen" class="popup">
     <div id="title">Safari!</div>
     
+    <div id="instructions">Kill the last dodo!</div> 
+    
     <div id="entername">
-      Enter your Safari name: <input type="text" id="nameEntry" /> <button id="start">Hunt!</button>
+      <p>Enter your Safari name:</p> <p><input type="text" id="nameEntry" /></p> <p><button id="start">Hunt!</button></p>
     </div>
     
-    <div id="instructions"><b>Objective:</b> Kill the last dodo!</div> 
+    
   </div>
   
-  <div id="winscreen" class="popup" style="display:none">
+  <div id="winscreen" class="popup" style="display:none; height: 400px; padding-top: 30px; margin-top: -250px;">
+    <center><img src="../../media/victory_400.png"></center><br>
     Congratulations <b id="winnerName"></b>!<br />
     You killed the last dodo!
     <br /><br />
