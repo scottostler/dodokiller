@@ -99,8 +99,15 @@ var env = {
   playerReloadTime: 40, // frames
   bulletMoveSpeed: 4, // pixels per frame
   bulletTravelDistance: 200, // pixels
-  dodoRadius: 20 // pixels, refers to how close bullets have to be to kill
+  dodoRadius: 20, // pixels, refers to how close bullets have to be to kill
+  playerRadius: 20 // pixels, used to prevent sprites from leaving screen
 };
+
+function constrain(val, max, padding) {
+  return Math.max(
+    Math.min(val, max - padding),
+    padding);
+}
 
 var objectId = 0;
 
@@ -179,6 +186,9 @@ function makePlayer(x, y, playerId, name) {
       dirty = true;
     }
     
+    x = constrain(x, env.playingFieldDimensions[0], env.playerRadius);
+    y = constrain(y, env.playingFieldDimensions[1], env.playerRadius);
+    
     if (dirty) {
       var state = player.serialize();
       state.event = 'update';
@@ -225,6 +235,8 @@ function makeDodo(x, y) {
   agentEvents.push(agentState);
   
   dodo.update = function () {
+    x = constrain(x, env.playingFieldDimensions[0], env.dodoRadius);
+    y = constrain(y, env.playingFieldDimensions[1], env.dodoRadius);
   };
   
   dodo.draw = function () {
