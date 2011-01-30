@@ -55,8 +55,20 @@ function initializeWorld() {
   agentEvents.push(world.serialize());
 }
 
-var gameInit = function() {
+function moveAllPlayers() {
+  agents.forEach(function(agent) {
+    var coord = makeRandomCoordinate();
+    agent.x = coord[0];
+    agent.y = coord[1];
+    agentEvents.push(agent.serialize('update'));
+  });
+}
+
+var gameInit = function(reassignPlayers) {
   initializeWorld();
+  if (reassignPlayers) {
+    moveAllPlayers();    
+  }
   makeRandomDodos();
 }
 
@@ -90,10 +102,22 @@ gameLoop = function(roundCallback) {
 
 exports.gameLoop = gameLoop;
 
-function makeRandomCoordinate(padding) {
-  var x = Math.random() * (env.playingFieldDimensions[0] - 2 * padding) + padding;
-  var y = Math.random() * (env.playingFieldDimensions[1] - 2 * padding) + padding;
-  return [x, y];
+function makeRandomCoordinate(paddingRadius) {
+  while (true) {
+    var x = Math.random() * (env.playingFieldDimensions[0] - 2 * paddingRadius) + paddingRadius;
+    var y = Math.random() * (env.playingFieldDimensions[1] - 2 * paddingRadius) + paddingRadius;
+
+    var found = false;
+    agents.forEach(function (agent, i) {
+      if (agent.isHit && agent.isHit(x, y, paddingRadius)) {
+        found = true;
+      }
+    });
+
+    if (!found && !world.collide(x, y, true, paddingRadius))
+      return [x, y];        
+    }
+  }
 }
 
 function constrain(val, max, padding) {
@@ -262,7 +286,9 @@ function makePlayer(x, y, playerId, name) {
   
   player.win = function () {
     agentEvents.push({ event: 'win', name: name });
-    setTimeout(gameInit, env.delayBetweenRounds);
+    setTimeout(
+      function() { gameInit(true); },
+      env.delayBetweenRounds);
   };
   
   return player;
