@@ -1,4 +1,4 @@
-function makeSprite(width, height, source) {
+function makeSprite(width, height, source, type) {
   var div = $("<div style='position:absolute; top: -1000px; left: -1000px;'></div>");
   $("#canvas").append(div);
   div.css("width", width);
@@ -15,6 +15,7 @@ function makeSprite(width, height, source) {
     },
     destroy: function () {
       div.remove();
-    }
+    },
+    type: type;
   };
 }
