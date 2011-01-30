@@ -42,7 +42,7 @@ function receiveFromServer(msg) {
     if (event.event === "create") {
       var s;
       if (event.type == "player") {
-        s = makeSprite(40, 60, "../../media/hat_new_2.png");
+        s = makeSprite(40, 40, "../../media/hat3.png");
       } else if (event.type == "dodo") {
         s = makeSprite(40, 40, "../../media/dodo.png");
       } else if (event.type == "bullet") {
