@@ -63,6 +63,9 @@ function gameInit() {
   world = makeWorld(1000, 800, 20);
   world.generate(0.005);
   world.draw();
+
+  // start music
+  restart_music("snd_metal_music");      
 }
 
 function gameLoop() {
@@ -131,6 +134,7 @@ function makePlayer(x, y, keyCodes, name) {
   
   player.shoot = function () {
     if (readyToShoot == 0) {
+      play_sound("snd_shot1");      
       makeBullet(x, y, facing, player);
       readyToShoot = env.playerReloadTime;
     }
@@ -183,6 +187,8 @@ function makePlayer(x, y, keyCodes, name) {
     $("#wins").html(name + " Wins!");
     // make more dodos
     makeRandomDodos();
+    // restart music?
+    //restart_music("snd_metal_music");      
   };
   
   return player;
@@ -251,6 +257,7 @@ function makeBullet(x, y, facing, player) {
     });
     if (found) {
       // kill the dodo!
+      play_sound("snd_squawk");      
       found.destroy();
       bullet.destroy();
       
