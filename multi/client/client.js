@@ -9,8 +9,9 @@ PROTOCOL:
 
 keyboard (client to server)
     {
-        "cmd": "forward" | "backward" | "left" | "right" | "shoot",
-        "down": true | false
+        "cmd": "forward" | "backward" | "left" | "right" | "shoot" | "name",
+        "down": true | false, // if cmd != "name"
+        "name": STRING // if cmd == "name"
     }
 
 sprites (server to client)
@@ -26,8 +27,15 @@ sprites (server to client)
         "x": NUMBER,
         "y": NUMBER,
         "facing": NUMBER // if applicable
+        "name": STRING // if create player
     },
     ...
+    
+    {"event": "win", "name": "Toby"}
+    
+    
+    
+    
   ]
 
 */
