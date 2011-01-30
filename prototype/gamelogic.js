@@ -59,6 +59,10 @@ function gameInit() {
   
   // position dodos
   makeRandomDodos();
+  
+  world = makeWorld(1000, 800, 20);
+  world.generate(0.05);
+  world.draw();
 }
 
 function gameLoop() {
@@ -120,7 +124,7 @@ function makePlayer(x, y, keyCodes, name) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
-  var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
+  var sprite = makeSprite(40, 40, "../media/hat_3.png");
   // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
@@ -141,12 +145,24 @@ function makePlayer(x, y, keyCodes, name) {
       facing += env.playerRotateSpeed;
     }
     if (keyboardState[keyCodes.forward]) {
-      x += Math.cos(facing) * env.playerMoveSpeed;
-      y += Math.sin(facing) * env.playerMoveSpeed;
+      var nx = x + Math.cos(facing) * env.playerMoveSpeed;
+      var ny = y + Math.sin(facing) * env.playerMoveSpeed;
+      
+      if(!world.collide(nx, ny))
+      {
+          x = nx; 
+          y = ny;
+      }
     }
     if (keyboardState[keyCodes.backward]) {
-      x -= Math.cos(facing) * env.playerMoveSpeed;
-      y -= Math.sin(facing) * env.playerMoveSpeed;
+      var nx = x - Math.cos(facing) * env.playerMoveSpeed;
+      var ny = y - Math.sin(facing) * env.playerMoveSpeed;
+      
+      if(!world.collide(nx, ny))
+      {
+            x = nx; 
+            y = ny;
+      }
     }
     
     if (keyboardState[keyCodes.shoot]) {

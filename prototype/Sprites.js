@@ -3,6 +3,7 @@ function makeSprite(width, height, source) {
   $("#canvas").append(div);
   div.css("width", width);
   div.css("height", height);
+  div.css("z-index", 10);
   div.css("background-image", "url("+source+")");
   
   return {
@@ -12,6 +13,7 @@ function makeSprite(width, height, source) {
       div.css("background-position", sx + "px " + sy + "px");
       div.css("left", x - width/2);
       div.css("top", y - height/2);
+      
     },
     destroy: function () {
       div.remove();
