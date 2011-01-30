@@ -1,11 +1,17 @@
+/* TODO:
+initialize the websocket
+set up sendToServer(msg) to send the message to the websocket
+hook up the websocket so that incoming messages (from the server) call receiveFromServer(msg)
+*/
+
 /*
+PROTOCOL:
+
 keyboard (client to server)
     {
         "cmd": "forward" | "backward" | "left" | "right" | "shoot",
         "down": true | false
     }
-
-
 
 sprites (server to client)
     [
@@ -17,6 +23,7 @@ sprites (server to client)
         },
         ...
     ]
+
 */
 
 function sendToServer(msg) {
