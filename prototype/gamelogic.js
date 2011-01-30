@@ -30,9 +30,8 @@ game state consists of
 
 */
 
-
-
-
+settingKeyCodes = { toggle_music:81, /* 'q' */
+                    }
 
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
@@ -56,6 +55,7 @@ function gameInit() {
     right: 222,
     shoot: 77
   }, "Player 2");
+
   
   // position dodos
   makeRandomDodos();
@@ -66,6 +66,7 @@ function gameInit() {
 
   // start music
   restart_music("snd_metal_music");      
+  pause_music();  // it's kind of annoying...
 }
 
 function gameLoop() {
@@ -177,6 +178,10 @@ function makePlayer(x, y, keyCodes, name) {
     // design decision: hold to keep firing or fire on every key press?
     if (readyToShoot > 0) readyToShoot--;
     
+    // other game controls go down here...
+    if (keyboardState[settingKeyCodes.toggle_music]) {
+      toggle_music();
+    }
   };
   
   player.draw = function () {
@@ -185,10 +190,11 @@ function makePlayer(x, y, keyCodes, name) {
   
   player.win = function () {
     $("#wins").html(name + " Wins!");
+
+    //pause_music();
+    play_sound("snd_victory"); 
     // make more dodos
     makeRandomDodos();
-    // restart music?
-    //restart_music("snd_metal_music");      
   };
   
   return player;
