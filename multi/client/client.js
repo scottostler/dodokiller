@@ -66,6 +66,7 @@ function receiveFromServer(msg) {
       } else if (event.type == "dodo") {
         s = makeSprite(40, 40, "../../media/dodo.png");
       } else if (event.type == "bullet") {
+        play_sound("snd_shot1");
         s = makeSprite(6, 6, "../../media/bullet.png");
       }
       s.draw(event.x, event.y, radiansToSprite(event.facing));
@@ -74,10 +75,14 @@ function receiveFromServer(msg) {
       sprites[event.id].draw(event.x, event.y, radiansToSprite(event.facing));
     } else if (event.event === "destroy") {
       console.warn(event);
+      if(sprites[event.id].type == "dodo") {  
+        play_sound("snd_squawk");
+      }
       sprites[event.id].destroy();
       delete sprites[event.id];
     } else if (event.event === "win") {
       gameState = "win";
+      play_sound("snd_victory");
       $("#winnerName").text(event.name);
       $("#winscreen").show();
       $("#countdown").text("6");
