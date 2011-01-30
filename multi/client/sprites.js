@@ -16,6 +16,6 @@ function makeSprite(width, height, source, type) {
     destroy: function () {
       div.remove();
     },
-    type: type;
+    type: type,
   };
 }
