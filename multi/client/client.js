@@ -14,15 +14,21 @@ keyboard (client to server)
     }
 
 sprites (server to client)
-    [
-        {
-            "type": "player" | "dodo" | "bullet",
-            "x": NUMBER, // int, pixels
-            "y": NUMBER, // int, pixels
-            "facing": NUMBER // float, radians (and only for player)
-        },
-        ...
-    ]
+  [
+    {
+      "event": "create" | "destroy" | "update",
+      "id": NUMBER,
+  
+      if create
+        "type": "player" | "dodo" | "bullet",
+  
+      if create or update
+        "x": NUMBER,
+        "y": NUMBER,
+        "facing": NUMBER // if applicable
+    },
+    ...
+  ]
 
 */
 
