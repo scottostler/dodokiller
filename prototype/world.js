@@ -112,8 +112,8 @@ function makeWorld(width, height, gridSize) {
            // console.log(ob);
             ob.div.css("left", ob.x * gridSize - gridSize/2);// - (world.eye_x - WIN_WIDTH/2));
             ob.div.css("top", ob.y * gridSize - gridSize/2);// - (world.eye_y - WIN_HEIGHT/2));
-            ob.div.css("width", gridSize);
-            ob.div.css("height", gridSize);
+            
+            
         });
         
         
@@ -140,6 +140,10 @@ function makeObject(x, y, type) {
     object.y = y;
     object.type = type;
     object.div = $("<div class='"+type+"'></div>");
+    object.div.css("width", world.gridSize + (type == "obstacle" ? Math.round(Math.random() * 3 - 6) : 0));
+    object.div.css("height", world.gridSize + (type == "obstacle" ? Math.round(Math.random() * 3 - 6) : 0));
+ //   object.div.css("border-radius", Math.round(Math.random() * 2 + 8));
+  //  object.div.css("-moz-border-radius", Math.round(Math.random() * 2 + 8));
     $("#canvas").append(object.div);
     
     

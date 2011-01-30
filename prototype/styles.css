@@ -22,6 +22,7 @@ body {
     height:800px;
     background:#2c3f65;
     overflow:hidden;
+    border: 8px dashed #bad32e;
 }
 
 #canvas {
@@ -41,9 +42,12 @@ body{
 .obstacle {
     position: absolute;
     background: green;
+/*    border-radius: 4px;*/
+   /* -moz-border-radius: 4px;*/
+   /* border: 1px #262b09 solid; */
 }
 
 .water {
     position: absolute;
-    background: 2c3f65;
+    background: #2c3f65;
 }
