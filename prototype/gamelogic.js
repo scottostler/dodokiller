@@ -221,11 +221,24 @@ function makeBullet(x, y, facing, player) {
   var sprite = makeSprite(6, 6, "../media/bullet.png");
   
   bullet.update = function () {
-    x += Math.cos(facing) * env.bulletMoveSpeed;
-    y += Math.sin(facing) * env.bulletMoveSpeed;
+      
+    var nx = x + Math.cos(facing) * env.bulletMoveSpeed;
+    var ny = y + Math.sin(facing) * env.bulletMoveSpeed;
+    
+    var collided = false;
+    if(!world.collide(nx, ny, false))
+    {
+      x = nx; 
+      y = ny;
+    }
+    else
+    {
+      collided = true;
+      bullet.destroy();
+    }
     
     distanceTravelled += env.bulletMoveSpeed;
-    if (distanceTravelled >= env.bulletTravelDistance) {
+    if (distanceTravelled >= env.bulletTravelDistance && !collided) {
       bullet.destroy();
     }
     
