@@ -12,7 +12,7 @@ var socket = io.listen(server);
 Clients = {};
 
 function broadcastState() {
-	var state = game.serializeGameState();
+	var state = game.serializeAndClearGameState();
 	socket.broadcast({ data: state });
 }
 

@@ -48,6 +48,9 @@ exports.setKeyboardState = setKeyboardState;
 
 var agents = [];
 
+// Tracks per-cycle agent creation/destruction
+var agentEvents = [];
+
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
     makeDodo(Math.random() * 500, Math.random() * 500);
@@ -103,10 +106,14 @@ var objectId = 0;
 
 function makeAgent() {
   var agent = {};
-  agent.objectId = objectId++;
+  
+  agent.objectId = ++objectId;
+  agent.dirty = false;
   agents.push(agent);
+  
   agent.destroy = function () {
     agent.destroyed = true;
+    agentEvents.push({ event: "destroy", id: agent.objectId });
   };
   
   return agent;
@@ -124,9 +131,6 @@ function makePlayer(x, y, playerId, name) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
-  //var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
-  // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
-  
   keyboardState[playerId] = {};
   
   var player = makeAgent();
@@ -134,8 +138,12 @@ function makePlayer(x, y, playerId, name) {
   player.playerId = playerId;
   
   player.serialize = function() {
-    return { type: "player", x: x, y: y, facing: facing };
+    return { type: "player", id: player.objectId, x: x, y: y, facing: facing };
   }
+  
+  var agentState = player.serialize();
+  agentState['event'] = 'create';
+  agentEvents.push(agentState);
   
   player.shoot = function () {
     if (readyToShoot == 0) {
@@ -153,17 +161,21 @@ function makePlayer(x, y, playerId, name) {
     // based on keyCodes (specific to the player) and keyboardState, update facing and position
     if (keyboardState[playerId].left) {
       facing -= env.playerRotateSpeed;
+      player.dirty = true;
     }
     if (keyboardState[playerId].right) {
       facing += env.playerRotateSpeed;
+      player.dirty = true;
     }
     if (keyboardState[playerId].forward) {
       x += Math.cos(facing) * env.playerMoveSpeed;
       y += Math.sin(facing) * env.playerMoveSpeed;
+      player.dirty = true;
     }
     if (keyboardState[playerId].backward) {
       x -= Math.cos(facing) * env.playerMoveSpeed;
       y -= Math.sin(facing) * env.playerMoveSpeed;
+      player.dirty = true;
     }
     
     if (keyboardState[playerId].shoot) {
@@ -197,15 +209,18 @@ function makePlayer(x, y, playerId, name) {
 function makeDodo(x, y) {
   var dodo = makeAgent();
   
-  //var sprite = makeSprite(40, 40, "../media/dodo.png");
-  
   dodo.serialize = function() {
-    return { type: "dodo", x: x, y: y };
+    return { type: "dodo", id: dodo.objectId, x: x, y: y };
   }
+  
+  var agentState = dodo.serialize();
+  agentState['event'] = 'create';
+  agentEvents.push(agentState);
   
   dodo.update = function () {
     
   };
+  
   dodo.draw = function () {
     sprite.draw(x, y, 0);
   };
@@ -227,15 +242,19 @@ function makeBullet(x, y, facing, player) {
   
   var bullet = makeAgent();
   
-  // var sprite = makeSprite(6, 6, "../media/bullet.png");
-  
   bullet.serialize = function() {
-    return { type: "bullet", x: x, y: y };
+    return { type: "bullet", id: bullet.objectId, x: x, y: y };
   }
+  
+  var agentState = dodo.serialize();
+  agentState['event'] = 'create';
+  agentEvents.push(agentState);
   
   bullet.update = function () {
     x += Math.cos(facing) * env.bulletMoveSpeed;
     y += Math.sin(facing) * env.bulletMoveSpeed;
+    
+    bullet.dirty = true;
     
     distanceTravelled += env.bulletMoveSpeed;
     if (distanceTravelled >= env.bulletTravelDistance) {
@@ -273,17 +292,23 @@ function makeBullet(x, y, facing, player) {
   
   var oldDestroy = bullet.destroy;
   bullet.destroy = function () {
-    // sprite.destroy();
     oldDestroy();
   };
 }
 
-
-
-exports.serializeGameState = function() {
-  return agents.map(function(agent, i) {
-    return agent.serialize();
+exports.serializeAndClearGameState = function() {
+  var output = agentEvents;
+  agentEvents = [];
+  
+  agents.forEach(function(agent) {
+    if (agent.dirty) {
+      var agentState = agent.serialize();
+      agentState.event = "update";
+      output.push(agentState);
+      agent.dirty = false;
+    }
   });
+  return output;
 }
 
 exports.connectPlayer = function(playerId) {
