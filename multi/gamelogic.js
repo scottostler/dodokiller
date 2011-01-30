@@ -62,7 +62,7 @@ exports.gameInit = function() {
   makeRandomDodos();
 }
 
-gameLoop = function(callback) {
+gameLoop = function(roundCallback) {
   // look at keyboard and move players
   // move bullets
   // kill dodos
@@ -83,9 +83,7 @@ gameLoop = function(callback) {
         } else i++;
       }
 
-    if (callback) {
-      callback();
-    }
+    if (roundCallback) { roundCallback(); }
   };
   setInterval(loop, env.gameSpeed);
 }
@@ -99,9 +97,10 @@ var env = {
   playerMoveSpeed: 1.8, // pixels per frame
   playerReloadTime: 40, // frames
   bulletMoveSpeed: 4, // pixels per frame
-  bulletTravelDistance: 200, // pixels
+  bulletTravelDistance: 300, // pixels
   dodoRadius: 20, // pixels, refers to how close bullets have to be to kill
-  playerRadius: 20 // pixels, used to prevent sprites from leaving screen
+  playerRadius: 20, // pixels, used to prevent sprites from leaving screen
+  delayBetweenRounds: 5000 // ms between a player winning and a new round beginning
 };
 
 function makeRandomCoordinate(padding) {
@@ -154,9 +153,10 @@ function makePlayer(x, y, playerId, name) {
     return { type: "player", id: player.objectId, x: x, y: y, facing: facing };
   }
   
-  var agentState = player.serialize();
-  agentState['event'] = 'create';
-  agentEvents.push(agentState);
+  var createEvent = player.serialize();
+  createEvent.event = 'create';
+  createEvent.name = name;
+  agentEvents.push(createEvent);
   
   player.shoot = function () {
     if (readyToShoot == 0) {
@@ -223,8 +223,8 @@ function makePlayer(x, y, playerId, name) {
   }
   
   player.win = function () {
-    // TODO: announce winnner
-     makeRandomDodos();
+    agentEvents.push({ event: 'win', name: name });
+    setTimeout(makeRandomDodos, env.delayBetweenRounds);
   };
   
   return player;
@@ -287,7 +287,7 @@ function makeBullet(x, y, facing, player) {
     // check if it killed a dodo
     var found = false;
     agents.forEach(function (agent, i) {
-      if (agent.isHit && agent.isHit(x, y)) {
+      if (!agent.destroyed && agent.isHit && agent.isHit(x, y)) {
         found = agent;
       }
     });
@@ -328,23 +328,22 @@ exports.serializeAndClearGameState = function() {
   var output = agentEvents;
   agentEvents = [];
   return output;  
-}
+};
 
-exports.connectPlayer = function(playerId) {
-  // note that this doesn't contain the creation event
-  // for this player's character -- that will be sent on the
-  // next game loop.
-	var agentEvents = agents.map(function(agent) {
+exports.serializeInitializingState = function() {
+  return agents.map(function(agent) {
 	  var state = agent.serialize();
 	  state.event = 'create';
 	  return state;
 	});
+};
+
+exports.connectPlayer = function(playerId, name) {
   var coord = makeRandomCoordinate(env.playerRadius);
 	makePlayer(
     coord[0], coord[1],
 	  playerId,
-	  "Player " + playerId);  // TODO: better names
-	return agentEvents;
+	  name);
 }
 
 exports.disconnectPlayer = function(playerId) {
@@ -352,6 +351,6 @@ exports.disconnectPlayer = function(playerId) {
   if (player) {
     player.destroy();
   } else {
-    console.error("Unable to find player record for " + playerId);
+    console.warn("Unable to find player record for disconnected player " + playerId);
   }
 }

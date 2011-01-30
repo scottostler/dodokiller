@@ -31,8 +31,12 @@ game state consists of
 */
 
 
-WIDTH = 1000;
-HEIGHT = 800;
+WIDTH = 1600;
+HEIGHT = 1600;
+WIN_WIDTH = WIDTH/2;
+WIN_HEIGHT = HEIGHT/2;
+
+
 
 settingKeyCodes = { toggle_music:81, /* 'q' */ }
 
@@ -46,9 +50,16 @@ function makeRandomDodos() {
         {
             x1 = Math.floor(Math.random() * WIDTH);
             y1 = Math.floor(Math.random() * HEIGHT);
+            
+            var found = false;
+            $.each(agents, function (i, agent) {
+              if (agent.isHit && agent.isHit(x1, y1, env.dodoPlayerRadius)) {
+                found = agent;
+              }
+            });
 
 
-        } while(world.collide(x1, y1, true));
+        } while(world.collide(x1, y1, true) || found);
       
     makeDodo(x1, y1);
   }
@@ -75,7 +86,7 @@ function gameInit() {
         y2 = Math.floor(Math.random() * HEIGHT);
 
 
-    } while(world.collide(x1, y1, true) || world.collide(x2, y2, true));
+    } while((x1==x2 && y1==y2) || world.collide(x1, y1, true) || world.collide(x2, y2, true));
   
   makePlayer(x1, y1, {
         forward: 87,
@@ -163,7 +174,7 @@ function makePlayer(x, y, keyCodes, name) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
-  var sprite = makeSprite(40, 40, "../media/hat_3.png");
+  var sprite = makeSprite(40, 40, "../media/hat_3.png", true);
   // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
@@ -189,7 +200,14 @@ function makePlayer(x, y, keyCodes, name) {
       var nx = x + Math.cos(facing) * env.playerMoveSpeed;
       var ny = y + Math.sin(facing) * env.playerMoveSpeed;
       
-      if(!world.collide(nx, ny, true) && inBounds(nx, ny))
+      var found = false;
+      $.each(agents, function (i, agent) {
+        if (agent != player && agent.isHit && agent.isHit(nx, ny, env.dodoPlayerRadius)) {
+          found = agent;
+        }
+      });
+      
+      if(!world.collide(nx, ny, true) && inBounds(nx, ny) && !found)
       {
           x = nx; 
           y = ny;
@@ -199,7 +217,14 @@ function makePlayer(x, y, keyCodes, name) {
       var nx = x - Math.cos(facing) * env.playerMoveSpeed;
       var ny = y - Math.sin(facing) * env.playerMoveSpeed;
       
-      if(!world.collide(nx, ny, true) && inBounds(nx, ny))
+      var found = false;
+        $.each(agents, function (i, agent) {
+          if (agent != player && agent.isHit && agent.isHit(nx, ny, env.dodoPlayerRadius)) {
+            found = agent;
+          }
+        });
+      
+      if(!world.collide(nx, ny, true) && inBounds(nx, ny) && !found)
       {
             x = nx; 
             y = ny;
@@ -214,7 +239,7 @@ function makePlayer(x, y, keyCodes, name) {
     // design decision: hold to keep firing or fire on every key press?
     if (readyToShoot > 0) readyToShoot--;
     
-
+    /*
     // collide w dodos
     var found = false;
     $.each(agents, function (i, agent) {
@@ -224,13 +249,16 @@ function makePlayer(x, y, keyCodes, name) {
     });
     if (found && keyboardState[keyCodes.forward]) {
     //  console.log(found);
-      found.setFacing(facing);
-      found.setPushed(true, this);
-      pushing = found;
+     // found.setFacing(facing);
+     // found.setPushed(true, this);
+     // pushing = found;
+     
+     
+     
     } else if(found) {
-      found.setPushed(false, this);
+      //found.setPushed(false, this);
     }
-    
+    */
 
     // other game controls go down here...
     if (keyboardState[settingKeyCodes.toggle_music]) {
@@ -240,8 +268,18 @@ function makePlayer(x, y, keyCodes, name) {
   };
   
   player.draw = function () {
+    if(name == "Player 1"){
+        world.setEye(x,y);
+    }
     sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36) % 36);
   };
+  
+  
+  player.isHit = function (bulletX, bulletY, rad) {
+      var distance = Math.sqrt(Math.pow(bulletX - x, 2) + Math.pow(bulletY - y, 2));
+      if (distance < rad) return true;
+      else return false;
+    };
   
   player.win = function () {
     $("#wins").html(name + " Wins!");
@@ -251,6 +289,8 @@ function makePlayer(x, y, keyCodes, name) {
     // make more dodos
     makeRandomDodos();
   };
+  
+  player.isPlayer = true;
   
   return player;
 }
@@ -262,7 +302,7 @@ function gaussian() {
 function makeDodo(x, y) {
   var dodo = makeAgent();
   
-  var sprite = makeSprite(40, 40, "../media/dodo.png");
+  var sprite = makeSprite(40, 40, "../media/dodo.png", false);
   
   var facing = 0;
   var pushed = false;
@@ -311,8 +351,15 @@ function makeDodo(x, y) {
         {
         var nx = x + Math.cos(facing) * env.dodoMoveSpeed * velocity;
         var ny = y + Math.sin(facing) * env.dodoMoveSpeed * velocity;
+        
+        var found = false;
+          $.each(agents, function (i, agent) {
+            if (agent != dodo && agent.isHit && agent.isHit(nx, ny, env.dodoPlayerRadius)) {
+              found = agent;
+            }
+          });
 
-          if(!world.collide(nx, ny, true) && inBounds(nx, ny))
+          if(!world.collide(nx, ny, true) && inBounds(nx, ny) && !found)
           {
               x = nx; 
               y = ny;
@@ -348,7 +395,7 @@ function makeBullet(x, y, facing, player) {
   
   var bullet = makeAgent();
   
-  var sprite = makeSprite(6, 6, "../media/bullet.png");
+  var sprite = makeSprite(6, 6, "../media/bullet.png", false);
   
   bullet.update = function () {
       
@@ -375,7 +422,7 @@ function makeBullet(x, y, facing, player) {
     // check if it killed a dodo
     var found = false;
     $.each(agents, function (i, agent) {
-      if (agent.isHit && agent.isHit(x, y, env.dodoRadius)) {
+      if (!agent.isPlayer && agent.isHit && agent.isHit(x, y, env.dodoRadius)) {
         found = agent;
       }
     });

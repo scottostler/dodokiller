@@ -9,6 +9,16 @@ function makeWorld(width, height, gridSize) {
     
     world.gridSize = gridSize;
     
+    world.eye_x = 0;
+    world.eye_y = 0;
+    
+    world.setEye = function(x, y) {
+        world.eye_x = x;
+        world.eye_y = y;
+        $("#canvas").css("left", -( world.eye_x - WIN_WIDTH/2 ));
+        $("#canvas").css("top", -( world.eye_y - WIN_HEIGHT/2 ));
+    }
+    
     world.generate = function(density) {
       
       for(var i = 0; i < width/gridSize; i++)
@@ -100,8 +110,8 @@ function makeWorld(width, height, gridSize) {
         
         $.each(world.objects, function (i, ob) {
            // console.log(ob);
-            ob.div.css("left", ob.x * gridSize - gridSize/2);
-            ob.div.css("top", ob.y * gridSize - gridSize/2);
+            ob.div.css("left", ob.x * gridSize - gridSize/2);// - (world.eye_x - WIN_WIDTH/2));
+            ob.div.css("top", ob.y * gridSize - gridSize/2);// - (world.eye_y - WIN_HEIGHT/2));
             ob.div.css("width", gridSize);
             ob.div.css("height", gridSize);
         });

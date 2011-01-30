@@ -73,6 +73,7 @@ function receiveFromServer(msg) {
     } else if (event.event === "update") {
       sprites[event.id].draw(event.x, event.y, radiansToSprite(event.facing));
     } else if (event.event === "destroy") {
+      console.warn(event);
       sprites[event.id].destroy();
       delete sprites[event.id];
     } else if (event.event === "win") {

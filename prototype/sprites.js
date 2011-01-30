@@ -1,4 +1,4 @@
-function makeSprite(width, height, source) {
+function makeSprite(width, height, source, player) {
   var div = $("<div style='position:absolute; top: -1000px; left: -1000px;'></div>");
   $("#canvas").append(div);
   div.css("width", width);

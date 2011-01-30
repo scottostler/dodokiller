@@ -2,12 +2,34 @@ body {
   overflow: hidden;
 }
 
+#title {
+    margin-left: auto ;
+      margin-right: auto ;
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size:48px;
+    text-align:center;
+    color:#bad32e;
+}
+
+#outercanvas {
+    margin-left: auto ;
+      margin-right: auto ;
+   /* position:absolute;
+    
+    left : 20px;
+    top: 20px;*/
+    width:800px;
+    height:800px;
+    background:#2c3f65;
+    overflow:hidden;
+}
+
 #canvas {
-    position:absolute;
+    position:relative;
     left : 20px;
     top: 20px;
-    width:1000px;
-    height:800px;
+    width:1600px;
+    height:1600px;
     background:#cfce72;
     
 }
@@ -23,5 +45,5 @@ body{
 
 .water {
     position: absolute;
-    background: blue;
+    background: 2c3f65;
 }
