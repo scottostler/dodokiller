@@ -19,3 +19,8 @@ body{
     position: absolute;
     background: green;
 }
+
+.water {
+    position: absolute;
+    background: blue;
+}

@@ -61,7 +61,7 @@ function gameInit() {
   makeRandomDodos();
   
   world = makeWorld(1000, 800, 20);
-  world.generate(0.05);
+  world.generate(0.005);
   world.draw();
 }
 
@@ -148,7 +148,7 @@ function makePlayer(x, y, keyCodes, name) {
       var nx = x + Math.cos(facing) * env.playerMoveSpeed;
       var ny = y + Math.sin(facing) * env.playerMoveSpeed;
       
-      if(!world.collide(nx, ny))
+      if(!world.collide(nx, ny, true))
       {
           x = nx; 
           y = ny;
@@ -158,7 +158,7 @@ function makePlayer(x, y, keyCodes, name) {
       var nx = x - Math.cos(facing) * env.playerMoveSpeed;
       var ny = y - Math.sin(facing) * env.playerMoveSpeed;
       
-      if(!world.collide(nx, ny))
+      if(!world.collide(nx, ny, true))
       {
             x = nx; 
             y = ny;

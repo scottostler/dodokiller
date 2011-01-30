@@ -5,6 +5,7 @@ function makeWorld(width, height, gridSize) {
     world.width = width;
     world.height = height;
     world.objects = [];
+    world.grid = [];
     
     world.gridSize = gridSize;
     
@@ -12,27 +13,122 @@ function makeWorld(width, height, gridSize) {
       
       for(var i = 0; i < width/gridSize; i++)
       {
+          world.grid[i] = [];
+          
           for(var j = 0; j < height/gridSize; j++)
           {
+              world.grid[i][j] = 0;
+              
               if(Math.random() < density)
               {
-                  var ob = makeObject(i, j, "obstacle");
+                  var type = Math.random() > .3 ? 1 : 2;
+                  var ob = makeObject(i, j, type == 1 ? "obstacle" : "water");
+                  world.grid[i][j] = type;
                   world.objects.push(ob);
               }
               
           }
       }
+      
+      var newobs = [];
+      var newgrid = [];
+      
+      /*for(var i = 0; i < world.grid.length; i++)
+      {
+        newgrid[i] = [];
+        for(var j = 0; j < world.grid[i].length; j++)
+        {
+            newgrid[i][j] = world.grid[i][j];
+        }
+      }*/
+        
+      /*
+      $.each(world.objects, function (i, ob) {
+          
+    
+          
+          for(var n = Math.max(ob.x - 1, 0); n < Math.min(ob.x + 1, world.width); n++)
+          {
+                for(var m = Math.max(ob.y - 1, 0); m < Math.max(ob.y + 1, world.height); m++)
+                {
+                    if(world.grid[n][m] == 0 && Math.random() > .8)
+                    {
+                           newgrid[n][m] = 1;
+                           var ob = makeObject(n, m, "obstacle");
+                           newobs.push(ob);
+                    }
+                }
+            }
+
+          
+      });
+      */
+      
+      for(var iter = 0; iter < 3; iter++)
+      {
+          
+      for(var i = 0; i < world.grid.length; i++)
+      {
+          newgrid[i] = [];
+          for(var j = 0; j < world.grid[i].length; j++)
+          {
+              
+              if(world.grid[i][j] > 0)
+              {
+              
+              for(var n = Math.max(i - 1, 0); n < Math.min(i + 1, world.width); n++)
+              {
+                  for(var m = Math.max(j - 1, 0); m < Math.min(j + 1, world.height); m++)
+                  {
+                      if(world.grid[n][m] == 0)
+                      {
+                          if(Math.random() > .4) newgrid[n][m] = world.grid[i][j];
+                      }
+                  }
+              }
+              
+              }
+              
+           }
+       }
+        
+    
+      
+      //world.objects = world.objects.concat(newobs);
+     // world.grid = newgrid;
+     
+     for(var i = 0; i < world.grid.length; i++)
+     {
+           for(var j = 0; j < world.grid[i].length; j++)
+           {
+               if(world.grid[i][j] == 0 && newgrid[i][j] > 0)
+               {
+                   var type = newgrid[i][j];
+                   var ob = makeObject(i, j, type == 1 ? "obstacle" : "water");
+                   world.grid[i][j] = 1;
+                   world.objects.push(ob);
+               }
+               
+            //   world.grid[i][j] = (world.grid[i][j] == 1 || newgrid[i][j] == 1) ? 1 : 0;
+               
+               
+           }
+     }
+ }
         
     };
     
-    world.collide = function(x, y) {
+    world.collide = function(x, y, collideWithWater) {
         
         var coll = false;
         
         $.each(world.objects, function (i, ob) {
            if(Math.round(x/world.gridSize) == ob.x && Math.round(y/world.gridSize) == ob.y)
            {
-               coll = true;
+               if(ob.type == "water")
+                    coll = collideWithWater;
+               else
+                    coll = true;
            }  
         });
         
@@ -55,6 +151,16 @@ function makeWorld(width, height, gridSize) {
     return world;
 }
 
+Object.prototype.clone = function() {
+  var newObj = (this instanceof Array) ? [] : {};
+  for (i in this) {
+    if (i == 'clone') continue;
+    if (this[i] && typeof this[i] == "object") {
+      newObj[i] = this[i].clone();
+    } else newObj[i] = this[i]
+  } return newObj;
+};
+
 function makeObject(x, y, type) {
     
     var object = {};
@@ -62,7 +168,7 @@ function makeObject(x, y, type) {
     object.x = x;
     object.y = y;
     object.type = type;
-    object.div = $("<div class='obstacle'></div>");
+    object.div = $("<div class='"+type+"'></div>");
     $("#canvas").append(object.div);
     
     
