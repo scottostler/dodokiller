@@ -30,8 +30,10 @@ game state consists of
 
 */
 
+var keyboardState = {};
+exports.keyboardState = keyboardState;
 
-
+var agents = [];
 
 
 function makeRandomDodos() {
@@ -40,60 +42,42 @@ function makeRandomDodos() {
   }
 }
 
-function gameInit() {
-  // position players
-  makePlayer(200, 200, {
-    forward: 87,
-    backward: 83,
-    left: 65,
-    right: 68,
-    shoot: 16
-  }, "Player 1");
-  makePlayer(300, 300, {
-    forward: 80,
-    backward: 186,
-    left: 76,
-    right: 222,
-    shoot: 77
-  }, "Player 2");
-  
-  // position dodos
+exports.gameInit = function() {
   makeRandomDodos();
 }
 
-function gameLoop() {
+gameLoop = function(callback) {
   // look at keyboard and move players
-  
   // move bullets
-  
   // kill dodos
-  
-  $.each(agents, function (i, agent) {
-    if (!agent.destroyed) {
-      agent.update();
-      agent.draw();
+
+  var loop = function() {
+    agents.forEach(function (agent, i) {
+      if (!agent.destroyed) {
+        agent.update();
+      }
+    });
+
+    // clean up destroyed agents
+    var i = 0;
+    while (i < agents.length) {
+      var agent = agents[i];
+      if (agent.destroyed) {
+        agents.splice(i, 1);
+        } else i++;
+      }
+
+    if (callback) {
+      callback();
     }
-  });
-  
-  // clean up destroyed agents
-  var i = 0;
-  while (i < agents.length) {
-    var agent = agents[i];
-    if (agent.destroyed) {
-      agents.splice(i, 1);
-    } else i++;
-  }
-  
-  setTimeout(gameLoop, env.gameSpeed);
+  };
+  setInterval(loop, env.gameSpeed);
 }
 
-$(function () {
-  gameInit();
-  gameLoop();
-});
+exports.gameLoop = gameLoop;
 
 var env = {
-  gameSpeed: 1, // frames per "millisecond" (changes based on browser...)
+  gameSpeed: 20, // frames per "millisecond" (changes based on browser...)
   playingFieldDimensions: [500, 500], // pixels
   playerRotateSpeed: 2*Math.PI/170, // radians per frame
   playerMoveSpeed: 1.8, // pixels per frame
@@ -103,8 +87,6 @@ var env = {
   dodoRadius: 20 // pixels, refers to how close bullets have to be to kill
 };
 
-
-var agents = [];
 
 function makeAgent() {
   var agent = {};
@@ -116,14 +98,30 @@ function makeAgent() {
   return agent;
 }
 
-function makePlayer(x, y, keyCodes, name) {
+function lookupPlayer(playerId) {
+  for (var i in agents) {
+    var agent = agents[i];
+    if (agent.playerId == playerId)
+      return agent;
+  }
+}
+
+function makePlayer(x, y, playerId, name) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
-  var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
+  //var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
   // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
+  keyboardState[playerId] = {};
+  
   var player = makeAgent();
+  
+  player.playerId = playerId;
+  
+  player.serialize = function() {
+    return { type: "player", x: x, y: y, facing: facing };
+  }
   
   player.shoot = function () {
     if (readyToShoot == 0) {
@@ -133,23 +131,28 @@ function makePlayer(x, y, keyCodes, name) {
   };
   
   player.update = function () {
+    if (keyboardState[playerId] === undefined) {
+      console.error("Missing keyboard state for player " + playerId);
+      return;
+    }
+    
     // based on keyCodes (specific to the player) and keyboardState, update facing and position
-    if (keyboardState[keyCodes.left]) {
+    if (keyboardState[playerId].left) {
       facing -= env.playerRotateSpeed;
     }
-    if (keyboardState[keyCodes.right]) {
+    if (keyboardState[playerId].right) {
       facing += env.playerRotateSpeed;
     }
-    if (keyboardState[keyCodes.forward]) {
+    if (keyboardState[playerId].forward) {
       x += Math.cos(facing) * env.playerMoveSpeed;
       y += Math.sin(facing) * env.playerMoveSpeed;
     }
-    if (keyboardState[keyCodes.backward]) {
+    if (keyboardState[playerId].backward) {
       x -= Math.cos(facing) * env.playerMoveSpeed;
       y -= Math.sin(facing) * env.playerMoveSpeed;
     }
     
-    if (keyboardState[keyCodes.shoot]) {
+    if (keyboardState[playerId].shoot) {
       player.shoot();
     }
     
@@ -163,10 +166,15 @@ function makePlayer(x, y, keyCodes, name) {
     sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36) % 36);
   };
   
+  var oldDestroy = player.destroy;
+  player.destroy = function() {
+    delete keyboardState[playerId];
+    oldDestroy();
+  }
+  
   player.win = function () {
-    $("#wins").html(name + " Wins!");
-    // make more dodos
-    makeRandomDodos();
+    // TODO: announce winnner
+     makeRandomDodos();
   };
   
   return player;
@@ -175,7 +183,11 @@ function makePlayer(x, y, keyCodes, name) {
 function makeDodo(x, y) {
   var dodo = makeAgent();
   
-  var sprite = makeSprite(40, 40, "../media/dodo.png");
+  //var sprite = makeSprite(40, 40, "../media/dodo.png");
+  
+  dodo.serialize = function() {
+    return { type: "dodo", x: x, y: y };
+  }
   
   dodo.update = function () {
     
@@ -192,7 +204,6 @@ function makeDodo(x, y) {
   
   var oldDestroy = dodo.destroy;
   dodo.destroy = function () {
-    sprite.destroy();
     oldDestroy();
   };
 }
@@ -202,7 +213,11 @@ function makeBullet(x, y, facing, player) {
   
   var bullet = makeAgent();
   
-  var sprite = makeSprite(6, 6, "../media/bullet.png");
+  // var sprite = makeSprite(6, 6, "../media/bullet.png");
+  
+  bullet.serialize = function() {
+    return { type: "bullet", x: x, y: y };
+  }
   
   bullet.update = function () {
     x += Math.cos(facing) * env.bulletMoveSpeed;
@@ -215,7 +230,7 @@ function makeBullet(x, y, facing, player) {
     
     // check if it killed a dodo
     var found = false;
-    $.each(agents, function (i, agent) {
+    agents.forEach(function (agent, i) {
       if (agent.isHit && agent.isHit(x, y)) {
         found = agent;
       }
@@ -227,7 +242,7 @@ function makeBullet(x, y, facing, player) {
       
       // check if last dodo
       var nomore = true;
-      $.each(agents, function (i, agent) {
+      agents.forEach(function (agent, i) {
         if (agent.isHit && !agent.destroyed) {
           nomore = false;
         }
@@ -244,8 +259,34 @@ function makeBullet(x, y, facing, player) {
   
   var oldDestroy = bullet.destroy;
   bullet.destroy = function () {
-    sprite.destroy();
+    // sprite.destroy();
     oldDestroy();
   };
 }
 
+
+
+exports.serializeGameState = function() {
+  return agents.map(function(agent, i) {
+    return agent.serialize();
+  });
+}
+
+exports.connectPlayer = function(playerId) {
+	makePlayer(
+	  Math.random() * 500,
+	  Math.random() * 500,
+	  playerId,
+	  // TODO: better names
+	  "Player " + playerId);
+}
+
+exports.disconnectPlayer = function(playerId) {
+  var player = lookupPlayer(playerId);
+  // TODO: send broadcast message
+  if (player) {
+    player.destroy();
+  } else {
+    console.error("Unable to find player record for " + playerId);
+  }
+}
