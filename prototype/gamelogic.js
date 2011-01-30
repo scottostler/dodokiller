@@ -57,21 +57,6 @@ function makeRandomDodos() {
 function gameInit() {
   // position players
 
-  makePlayer(200, 200, {
-    forward: 87,
-    backward: 83,
-    left: 65,
-    right: 68,
-    shoot: 16
-  }, "Player 1");
-  makePlayer(300, 300, {
-    forward: 80,
-    backward: 186,
-    left: 76,
-    right: 222,
-    shoot: 77
-  }, "Player 2");
-
   
   // position dodos
   
