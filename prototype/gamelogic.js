@@ -31,41 +31,75 @@ game state consists of
 */
 
 
+WIDTH = 1000;
+HEIGHT = 800;
 
+settingKeyCodes = { toggle_music:81, /* 'q' */ }
 
 
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
-    makeDodo(Math.random() * 500, Math.random() * 500);
+      
+      var x1 = 0, y1 = 0;
+
+        do
+        {
+            x1 = Math.floor(Math.random() * WIDTH);
+            y1 = Math.floor(Math.random() * HEIGHT);
+
+
+        } while(world.collide(x1, y1, true));
+      
+    makeDodo(x1, y1);
   }
 }
 
 function gameInit() {
   // position players
-  makePlayer(200, 200, {
-    forward: 87,
-    backward: 83,
-    left: 65,
-    right: 68,
-    shoot: 16
-  }, "Player 1");
-  makePlayer(300, 300, {
-    forward: 80,
-    backward: 186,
-    left: 76,
-    right: 222,
-    shoot: 77
-  }, "Player 2");
+
   
   // position dodos
-  makeRandomDodos();
   
-  world = makeWorld(1000, 800, 20);
+  
+  world = makeWorld(WIDTH, HEIGHT, 20);
   world.generate(0.005);
   world.draw();
+  
+  var x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+
+    do
+    {
+        x1 = Math.floor(Math.random() * WIDTH);
+        y1 = Math.floor(Math.random() * HEIGHT);
+        x2 = Math.floor(Math.random() * WIDTH);
+        y2 = Math.floor(Math.random() * HEIGHT);
+
+
+    } while(world.collide(x1, y1, true) || world.collide(x2, y2, true));
+  
+  makePlayer(x1, y1, {
+        forward: 87,
+        backward: 83,
+        left: 65,
+        right: 68,
+        shoot: 16
+      }, "Player 1");
+      
+ makePlayer(x2, y2, {
+        forward: 80,
+        backward: 186,
+        left: 76,
+        right: 222,
+        shoot: 77
+      }, "Player 2");
+      
+makeRandomDodos();
+
 
   // start music
   restart_music("snd_metal_music");      
+  pause_music();  // it's kind of annoying...
+
 }
 
 function gameLoop() {
@@ -107,7 +141,9 @@ var env = {
   playerReloadTime: 40, // frames
   bulletMoveSpeed: 4, // pixels per frame
   bulletTravelDistance: 200, // pixels
-  dodoRadius: 20 // pixels, refers to how close bullets have to be to kill
+  dodoMoveSpeed: .8, // pixels per frame
+  dodoRadius: 20, // pixels, refers to how close bullets have to be to kill
+  dodoPlayerRadius: 40 // pixels, refers to how close bullets have to be to kill
 };
 
 
@@ -131,6 +167,7 @@ function makePlayer(x, y, keyCodes, name) {
   // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
+  var pushing = 0;
   
   player.shoot = function () {
     if (readyToShoot == 0) {
@@ -152,7 +189,7 @@ function makePlayer(x, y, keyCodes, name) {
       var nx = x + Math.cos(facing) * env.playerMoveSpeed;
       var ny = y + Math.sin(facing) * env.playerMoveSpeed;
       
-      if(!world.collide(nx, ny, true))
+      if(!world.collide(nx, ny, true) && inBounds(nx, ny))
       {
           x = nx; 
           y = ny;
@@ -162,7 +199,7 @@ function makePlayer(x, y, keyCodes, name) {
       var nx = x - Math.cos(facing) * env.playerMoveSpeed;
       var ny = y - Math.sin(facing) * env.playerMoveSpeed;
       
-      if(!world.collide(nx, ny, true))
+      if(!world.collide(nx, ny, true) && inBounds(nx, ny))
       {
             x = nx; 
             y = ny;
@@ -177,6 +214,29 @@ function makePlayer(x, y, keyCodes, name) {
     // design decision: hold to keep firing or fire on every key press?
     if (readyToShoot > 0) readyToShoot--;
     
+
+    // collide w dodos
+    var found = false;
+    $.each(agents, function (i, agent) {
+      if (agent.isHit && agent.isHit(x, y, env.dodoPlayerRadius)) {
+        found = agent;
+      }
+    });
+    if (found && keyboardState[keyCodes.forward]) {
+    //  console.log(found);
+      found.setFacing(facing);
+      found.setPushed(true, this);
+      pushing = found;
+    } else if(found) {
+      found.setPushed(false, this);
+    }
+    
+
+    // other game controls go down here...
+    if (keyboardState[settingKeyCodes.toggle_music]) {
+      toggle_music();
+    }
+
   };
   
   player.draw = function () {
@@ -185,13 +245,18 @@ function makePlayer(x, y, keyCodes, name) {
   
   player.win = function () {
     $("#wins").html(name + " Wins!");
+
+    //pause_music();
+    play_sound("snd_victory"); 
     // make more dodos
     makeRandomDodos();
-    // restart music?
-    //restart_music("snd_metal_music");      
   };
   
   return player;
+}
+
+function gaussian() {
+	return (Math.random()*2-1)+(Math.random()*2-1)+(Math.random()*2-1);
 }
 
 function makeDodo(x, y) {
@@ -199,16 +264,75 @@ function makeDodo(x, y) {
   
   var sprite = makeSprite(40, 40, "../media/dodo.png");
   
+  var facing = 0;
+  var pushed = false;
+  var pusher = 0;
+  var moving = true;
+  var velocity = 0;
+  var colliding = false;
+  
+  dodo.setPushed = function (p, pushr) {
+      pushed = p;
+      pusher = pushr;
+      moving = false;
+  };
+  
+  dodo.setFacing = function (f) {
+      facing = f;
+  };
+  
   dodo.update = function () {
-    
+    if(pushed){
+       // console.log("dodo moving " + moving);
+        var nx = x + Math.cos(facing) * env.playerMoveSpeed;
+        var ny = y + Math.sin(facing) * env.playerMoveSpeed;
+
+          if(!world.collide(nx, ny, true) && inBounds(nx, ny))
+          {
+              x = nx; 
+              y = ny;
+          }
+          
+        if(!this.isHit(pusher.x, pusher.y, env.dodoPlayerRadius))
+        {
+            pushed = false;
+            moving = true;
+        }
+    } else {
+        
+        if(moving && Math.random() > .992)
+        {
+            facing += gaussian();
+            velocity = gaussian() * 10;
+            if(Math.abs(velocity) < 5.0) velocity = 0;
+        }
+        
+        if(moving && Math.random() > .7)
+        {
+        var nx = x + Math.cos(facing) * env.dodoMoveSpeed * velocity;
+        var ny = y + Math.sin(facing) * env.dodoMoveSpeed * velocity;
+
+          if(!world.collide(nx, ny, true) && inBounds(nx, ny))
+          {
+              x = nx; 
+              y = ny;
+              colliding = false;
+          } else {
+              colliding = true;
+          }
+        }
+        
+        velocity *= .95;
+        
+    }
   };
   dodo.draw = function () {
     sprite.draw(x, y, 0);
   };
   
-  dodo.isHit = function (bulletX, bulletY) {
+  dodo.isHit = function (bulletX, bulletY, rad) {
     var distance = Math.sqrt(Math.pow(bulletX - x, 2) + Math.pow(bulletY - y, 2));
-    if (distance < env.dodoRadius) return true;
+    if (distance < rad) return true;
     else return false;
   };
   
@@ -251,7 +375,7 @@ function makeBullet(x, y, facing, player) {
     // check if it killed a dodo
     var found = false;
     $.each(agents, function (i, agent) {
-      if (agent.isHit && agent.isHit(x, y)) {
+      if (agent.isHit && agent.isHit(x, y, env.dodoRadius)) {
         found = agent;
       }
     });
@@ -283,5 +407,12 @@ function makeBullet(x, y, facing, player) {
     sprite.destroy();
     oldDestroy();
   };
+}
+
+function inBounds(x, y){
+    if(x > 0 && x < WIDTH && y > 0 && y < HEIGHT)
+        return true;
+    else
+        return false;
 }
 

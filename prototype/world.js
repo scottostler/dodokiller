@@ -29,40 +29,9 @@ function makeWorld(width, height, gridSize) {
               
           }
       }
-      
-      var newobs = [];
-      var newgrid = [];
-      
-      /*for(var i = 0; i < world.grid.length; i++)
-      {
-        newgrid[i] = [];
-        for(var j = 0; j < world.grid[i].length; j++)
-        {
-            newgrid[i][j] = world.grid[i][j];
-        }
-      }*/
-        
-      /*
-      $.each(world.objects, function (i, ob) {
-          
-    
-          
-          for(var n = Math.max(ob.x - 1, 0); n < Math.min(ob.x + 1, world.width); n++)
-          {
-                for(var m = Math.max(ob.y - 1, 0); m < Math.max(ob.y + 1, world.height); m++)
-                {
-                    if(world.grid[n][m] == 0 && Math.random() > .8)
-                    {
-                           newgrid[n][m] = 1;
-                           var ob = makeObject(n, m, "obstacle");
-                           newobs.push(ob);
-                    }
-                }
-            }
 
-          
-      });
-      */
+      var newgrid = [];
+
       
       for(var iter = 0; iter < 3; iter++)
       {
@@ -91,11 +60,7 @@ function makeWorld(width, height, gridSize) {
               
            }
        }
-        
-    
-      
-      //world.objects = world.objects.concat(newobs);
-     // world.grid = newgrid;
+
      
      for(var i = 0; i < world.grid.length; i++)
      {
@@ -108,10 +73,6 @@ function makeWorld(width, height, gridSize) {
                    world.grid[i][j] = 1;
                    world.objects.push(ob);
                }
-               
-            //   world.grid[i][j] = (world.grid[i][j] == 1 || newgrid[i][j] == 1) ? 1 : 0;
-               
-               
            }
      }
  }
