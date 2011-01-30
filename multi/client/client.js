@@ -64,12 +64,12 @@ function receiveFromServer(msg) {
       if (event.type == "player") {
         var asset = "../../media/hat_3.png";
         if (event.name === myName) asset = "../../media/hat_3_highlight.png";
-        s = makeSprite(40, 40, asset);
+        s = makeSprite(40, 40, asset, event.type);
       } else if (event.type == "dodo") {
-        s = makeSprite(40, 40, "../../media/dodo.png");
+        s = makeSprite(40, 40, "../../media/dodo.png", event.type);
       } else if (event.type == "bullet") {
         play_sound("snd_shot2");
-        s = makeSprite(6, 6, "../../media/bullet.png");
+        s = makeSprite(6, 6, "../../media/bullet.png", event.type);
       }
       s.draw(event.x, event.y, radiansToSprite(event.facing));
       sprites[event.id] = s;
