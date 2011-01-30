@@ -30,8 +30,10 @@ game state consists of
 
 */
 
+var keyboardState = {};
+exports.keyboardState = keyboardState;
 
-
+var agents = [];
 
 
 function makeRandomDodos() {
@@ -40,35 +42,16 @@ function makeRandomDodos() {
   }
 }
 
-function gameInit() {
-  // position players
-  makePlayer(200, 200, {
-    forward: 87,
-    backward: 83,
-    left: 65,
-    right: 68,
-    shoot: 16
-  }, "Player 1");
-  makePlayer(300, 300, {
-    forward: 80,
-    backward: 186,
-    left: 76,
-    right: 222,
-    shoot: 77
-  }, "Player 2");
+exports.gameInit = function() {
   
-  // position dodos
-  makeRandomDodos();
 }
 
-function gameLoop() {
+gameLoop = function() {
   // look at keyboard and move players
-  
   // move bullets
-  
   // kill dodos
   
-  $.each(agents, function (i, agent) {
+  agents.forEach(function (agent, i) {
     if (!agent.destroyed) {
       agent.update();
       agent.draw();
@@ -87,10 +70,7 @@ function gameLoop() {
   setTimeout(gameLoop, env.gameSpeed);
 }
 
-$(function () {
-  gameInit();
-  gameLoop();
-});
+//exports.gameLoop = gameLoop;
 
 var env = {
   gameSpeed: 1, // frames per "millisecond" (changes based on browser...)
@@ -104,8 +84,6 @@ var env = {
 };
 
 
-var agents = [];
-
 function makeAgent() {
   var agent = {};
   agents.push(agent);
@@ -116,7 +94,15 @@ function makeAgent() {
   return agent;
 }
 
-function makePlayer(x, y, keyCodes, name) {
+function lookupPlayer(playerId) {
+  for (var i in agents) {
+    var agent = agents[i];
+    if (agent.playerId == playerId)
+      return agent;
+  }
+}
+
+function makePlayer(x, y, playerId, name) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
@@ -124,6 +110,8 @@ function makePlayer(x, y, keyCodes, name) {
   // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
   var player = makeAgent();
+
+  player.playerId = playerId;
   
   player.shoot = function () {
     if (readyToShoot == 0) {
@@ -133,23 +121,28 @@ function makePlayer(x, y, keyCodes, name) {
   };
   
   player.update = function () {
+    if (!keyboardState[playerId]) {
+      console.error("Missing keyboard state for player " + playerId);
+      return;
+    }
+    
     // based on keyCodes (specific to the player) and keyboardState, update facing and position
-    if (keyboardState[keyCodes.left]) {
+    if (keyboardState[playerId].left) {
       facing -= env.playerRotateSpeed;
     }
-    if (keyboardState[keyCodes.right]) {
+    if (keyboardState[playerId].right) {
       facing += env.playerRotateSpeed;
     }
-    if (keyboardState[keyCodes.forward]) {
+    if (keyboardState[playerId].forward) {
       x += Math.cos(facing) * env.playerMoveSpeed;
       y += Math.sin(facing) * env.playerMoveSpeed;
     }
-    if (keyboardState[keyCodes.backward]) {
+    if (keyboardState[playerId].backward) {
       x -= Math.cos(facing) * env.playerMoveSpeed;
       y -= Math.sin(facing) * env.playerMoveSpeed;
     }
     
-    if (keyboardState[keyCodes.shoot]) {
+    if (keyboardState[playerId].shoot) {
       player.shoot();
     }
     
@@ -163,11 +156,12 @@ function makePlayer(x, y, keyCodes, name) {
     sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36) % 36);
   };
   
-  player.win = function () {
-    $("#wins").html(name + " Wins!");
-    // make more dodos
-    makeRandomDodos();
-  };
+  // TODO
+  // player.win = function () {
+  //   $("#wins").html(name + " Wins!");
+  //   // make more dodos
+  //   makeRandomDodos();
+  // };
   
   return player;
 }
@@ -215,7 +209,7 @@ function makeBullet(x, y, facing, player) {
     
     // check if it killed a dodo
     var found = false;
-    $.each(agents, function (i, agent) {
+    agents.forEach(function (agent, i) {
       if (agent.isHit && agent.isHit(x, y)) {
         found = agent;
       }
@@ -227,7 +221,7 @@ function makeBullet(x, y, facing, player) {
       
       // check if last dodo
       var nomore = true;
-      $.each(agents, function (i, agent) {
+      agents.forEach(function (agent, i) {
         if (agent.isHit && !agent.destroyed) {
           nomore = false;
         }
@@ -249,3 +243,21 @@ function makeBullet(x, y, facing, player) {
   };
 }
 
+function connectPlayer(playerId) {
+	makePlayer(
+	  Math.random() * 500,
+	  Math.random() * 500,
+	  playerId,
+	  // TODO: better names
+	  "Player " + playerId);
+}
+
+function disconnectPlayer(playerId) {
+  var player = lookupPlayer(playerId);
+  // TODO: send broadcast message
+  if (player) {
+    player.destroy();
+  } else {
+    console.error("Unable to find player record for " + playerId);
+  }
+}
