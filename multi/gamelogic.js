@@ -91,12 +91,13 @@ gameLoop = function(roundCallback) {
 exports.gameLoop = gameLoop;
 
 var env = {
+  dodoMoveSpeed: 0.5, // pixels per frame
   gameSpeed: 10, // frames per "millisecond" (changes based on browser...)
   playingFieldDimensions: [1200, 600], // pixels
-  playerRotateSpeed: 2*Math.PI/170, // radians per frame
-  playerMoveSpeed: 1.8, // pixels per frame
+  playerRotateSpeed: 3*Math.PI/170, // radians per frame
+  playerMoveSpeed: 4, // pixels per frame
   playerReloadTime: 40, // frames
-  bulletMoveSpeed: 4, // pixels per frame
+  bulletMoveSpeed: 8, // pixels per frame
   bulletTravelDistance: 300, // pixels
   dodoRadius: 20, // pixels, refers to how close bullets have to be to kill
   playerRadius: 20, // pixels, used to prevent sprites from leaving screen
@@ -149,14 +150,22 @@ function makePlayer(x, y, playerId, name) {
   
   player.playerId = playerId;
   
-  player.serialize = function() {
-    return { type: "player", id: player.objectId, x: x, y: y, facing: facing };
+  player.serialize = function(eventType) {
+    var event = { 
+      event: eventType,
+      type: "player", 
+      id: player.objectId, 
+      x: x,
+      y: y,
+      facing: facing
+    };
+    if (eventType == 'create') {
+      event.name = name;
+    }
+    return event;
   }
   
-  var createEvent = player.serialize();
-  createEvent.event = 'create';
-  createEvent.name = name;
-  agentEvents.push(createEvent);
+  agentEvents.push(player.serialize('create'));
   
   player.shoot = function () {
     if (readyToShoot == 0) {
@@ -197,9 +206,7 @@ function makePlayer(x, y, playerId, name) {
     y = constrain(y, env.playingFieldDimensions[1], env.playerRadius);
     
     if (dirty) {
-      var state = player.serialize();
-      state.event = 'update';
-      agentEvents.push(state);
+      agentEvents.push(player.serialize('update'));
     }
     
     if (keyboardState[playerId].shoot) {
@@ -230,20 +237,40 @@ function makePlayer(x, y, playerId, name) {
   return player;
 }
 
+function gaussian() {
+	return (Math.random()*2-1)+(Math.random()*2-1)+(Math.random()*2-1);
+}
+
 function makeDodo(x, y) {
   var dodo = makeAgent();
   
-  dodo.serialize = function() {
-    return { type: "dodo", id: dodo.objectId, x: x, y: y };
+  dodo.serialize = function(eventType) {
+    return { event: eventType, type: "dodo", id: dodo.objectId, x: x, y: y };
   }
   
-  var agentState = dodo.serialize();
-  agentState.event = 'create';
-  agentEvents.push(agentState);
+  agentEvents.push(dodo.serialize('create'));
+  
+  var facing = 0;
+  var velocity = 0;
   
   dodo.update = function () {
-    x = constrain(x, env.playingFieldDimensions[0], env.dodoRadius);
-    y = constrain(y, env.playingFieldDimensions[1], env.dodoRadius);
+    if (Math.random() > .992) {
+        facing += gaussian();
+        velocity = gaussian() * 10;
+        if (Math.abs(velocity) < 5.0) velocity = 0;
+    }
+    
+    if (velocity > 0) {
+      x += Math.cos(facing) * env.dodoMoveSpeed * velocity;
+      y += Math.sin(facing) * env.dodoMoveSpeed * velocity;
+
+      velocity *= .95;
+
+      x = constrain(x, env.playingFieldDimensions[0], env.dodoRadius);
+      y = constrain(y, env.playingFieldDimensions[1], env.dodoRadius);
+      
+      agentEvents.push(dodo.serialize('update'));
+    }
   };
   
   dodo.draw = function () {
@@ -267,13 +294,17 @@ function makeBullet(x, y, facing, player) {
   
   var bullet = makeAgent();
   
-  bullet.serialize = function() {
-    return { type: "bullet", id: bullet.objectId, x: x, y: y };
+  bullet.serialize = function(eventType) {
+    return {
+      event: eventType,
+      type: "bullet", 
+      id: bullet.objectId,
+      x: x,
+      y: y
+    };
   }
   
-  var agentState = bullet.serialize();
-  agentState['event'] = 'create';
-  agentEvents.push(agentState);
+  agentEvents.push(bullet.serialize('create'));
   
   bullet.update = function () {
     x += Math.cos(facing) * env.bulletMoveSpeed;
@@ -308,9 +339,7 @@ function makeBullet(x, y, facing, player) {
       }
     }
     if (!bullet.destroyed) {
-      var state = bullet.serialize();
-      state.event = 'update';
-      agentEvents.push(state);
+      agentEvents.push(bullet.serialize('update'));
     }
   };
   
@@ -332,9 +361,7 @@ exports.serializeAndClearGameState = function() {
 
 exports.serializeInitializingState = function() {
   return agents.map(function(agent) {
-	  var state = agent.serialize();
-	  state.event = 'create';
-	  return state;
+	  return agent.serialize('create');
 	});
 };
 
