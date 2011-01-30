@@ -30,15 +30,12 @@ game state consists of
 
 */
 
-<<<<<<< HEAD
-
 
 WIDTH = 1000;
 HEIGHT = 800;
-=======
-settingKeyCodes = { toggle_music:81, /* 'q' */
-                    }
->>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
+
+settingKeyCodes = { toggle_music:81, /* 'q' */ }
+
 
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
@@ -59,9 +56,7 @@ function makeRandomDodos() {
 
 function gameInit() {
   // position players
-<<<<<<< HEAD
-  
-=======
+
   makePlayer(200, 200, {
     forward: 87,
     backward: 83,
@@ -77,7 +72,6 @@ function gameInit() {
     shoot: 77
   }, "Player 2");
 
->>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
   
   // position dodos
   
@@ -85,7 +79,6 @@ function gameInit() {
   world = makeWorld(WIDTH, HEIGHT, 20);
   world.generate(0.005);
   world.draw();
-<<<<<<< HEAD
   
   var x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 
@@ -116,12 +109,12 @@ function gameInit() {
       }, "Player 2");
       
 makeRandomDodos();
-=======
+
 
   // start music
   restart_music("snd_metal_music");      
   pause_music();  // it's kind of annoying...
->>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
+
 }
 
 function gameLoop() {
@@ -236,7 +229,7 @@ function makePlayer(x, y, keyCodes, name) {
     // design decision: hold to keep firing or fire on every key press?
     if (readyToShoot > 0) readyToShoot--;
     
-<<<<<<< HEAD
+
     // collide w dodos
     var found = false;
     $.each(agents, function (i, agent) {
@@ -253,12 +246,12 @@ function makePlayer(x, y, keyCodes, name) {
       found.setPushed(false, this);
     }
     
-=======
+
     // other game controls go down here...
     if (keyboardState[settingKeyCodes.toggle_music]) {
       toggle_music();
     }
->>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
+
   };
   
   player.draw = function () {
