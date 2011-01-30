@@ -4,7 +4,7 @@ body {
 
 #title {
     margin-left: auto ;
-      margin-right: auto ;
+    margin-right: auto ;
     font-family: "Georgia", "Times New Roman", serif;
     font-size:48px;
     text-align:center;
@@ -13,9 +13,8 @@ body {
 
 #outercanvas {
     margin-left: auto ;
-      margin-right: auto ;
-   /* position:absolute;
-    
+    margin-right: auto ;
+    /* position:absolute;
     left : 20px;
     top: 20px;*/
     width:800px;
@@ -23,6 +22,7 @@ body {
     background:#2c3f65;
     overflow:hidden;
     border: 8px dashed #bad32e;
+    /* background-image:url('../media/tile-ocean.png'); */
 }
 
 #canvas {
@@ -32,6 +32,7 @@ body {
     width:1600px;
     height:1600px;
     background:#cfce72;
+    background-image:url('../media/tile-dry-ground.png');
     
 }
 
@@ -41,13 +42,15 @@ body{
 
 .obstacle {
     position: absolute;
-    background: green;
-/*    border-radius: 4px;*/
-   /* -moz-border-radius: 4px;*/
-   /* border: 1px #262b09 solid; */
+    /* background: green; */
+    background-image:url('../media/tile-bush-sm.png');
+    /* border-radius: 4px;*/
+    /* -moz-border-radius: 4px;*/
+    /* border: 1px #262b09 solid; */
 }
 
 .water {
     position: absolute;
     background: #2c3f65;
+    background-image:url('../media/tile-ocean.png');
 }

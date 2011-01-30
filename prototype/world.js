@@ -182,8 +182,9 @@ function makeObject(x, y, type) {
     object.y = y;
     object.type = type;
     object.div = $("<div class='"+type+"'></div>");
-    object.div.css("width", world.gridSize + (type == "obstacle" ? Math.round(Math.random() * 3 - 6) : 0));
-    object.div.css("height", world.gridSize + (type == "obstacle" ? Math.round(Math.random() * 3 - 6) : 0));
+    //object.div.css("width", world.gridSize + (type == "obstacle" ? Math.round(Math.random() * 3 - 6) : 0));
+    object.div.css("width", world.gridSize);
+    object.div.css("height", world.gridSize);
  //   object.div.css("border-radius", Math.round(Math.random() * 2 + 8));
   //  object.div.css("-moz-border-radius", Math.round(Math.random() * 2 + 8));
     $("#canvas").append(object.div);
