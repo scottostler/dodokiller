@@ -31,10 +31,22 @@ game state consists of
 */
 
 var keyboardState = {};
-exports.keyboardState = keyboardState;
+
+var setKeyboardState = function(playerId, isDown, cmd) {
+  if (playerId in keyboardState) {
+    if (isDown) {
+      keyboardState[playerId][cmd] = true;
+    } else {
+      delete keyboardState[playerId][cmd];
+    }
+  } else {
+    console.warn("Missing keyboard state for player " +  playerId);
+  }
+}
+
+exports.setKeyboardState = setKeyboardState;
 
 var agents = [];
-
 
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
@@ -77,7 +89,7 @@ gameLoop = function(callback) {
 exports.gameLoop = gameLoop;
 
 var env = {
-  gameSpeed: 20, // frames per "millisecond" (changes based on browser...)
+  gameSpeed: 10, // frames per "millisecond" (changes based on browser...)
   playingFieldDimensions: [500, 500], // pixels
   playerRotateSpeed: 2*Math.PI/170, // radians per frame
   playerMoveSpeed: 1.8, // pixels per frame
@@ -87,9 +99,11 @@ var env = {
   dodoRadius: 20 // pixels, refers to how close bullets have to be to kill
 };
 
+var objectId = 0;
 
 function makeAgent() {
   var agent = {};
+  agent.objectId = objectId++;
   agents.push(agent);
   agent.destroy = function () {
     agent.destroyed = true;
