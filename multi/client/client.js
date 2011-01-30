@@ -34,6 +34,12 @@ sprites (server to client)
 
 var sprites = {};
 
+function radiansToSprite(facing) {
+  if (facing) {
+    return Math.round((facing / (Math.PI*2))*36) % 36;
+  } else return 0;
+}
+
 function receiveFromServer(msg) {
   var data = msg.data;
   if (Math.random() > 0.99) { console.log(msg); }
@@ -48,10 +54,10 @@ function receiveFromServer(msg) {
       } else if (event.type == "bullet") {
         s = makeSprite(6, 6, "../../media/bullet.png");
       }
-      s.draw(event.x, event.y, event.facing || 0);
+      s.draw(event.x, event.y, radiansToSprite(event.facing));
       sprites[event.id] = s;
     } else if (event.event === "update") {
-      sprites[event.id].draw(event.x, event.y, event.facing || 0);
+      sprites[event.id].draw(event.x, event.y, radiansToSprite(event.facing));
     } else if (event.event === "destroy") {
       sprites[event.id].destroy();
       delete sprites[event.id];
