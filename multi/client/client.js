@@ -142,7 +142,7 @@ var socket;
 var keyboardState = {};
 
 function sendKey(cmd, down) {
-  if (gameState === "playing") {
+  if (gameState !== "intro") {
     if (!cmd) { return; }
     var msg = {
       "cmd": cmd,
