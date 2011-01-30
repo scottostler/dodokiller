@@ -26,17 +26,16 @@ sprites (server to client)
 
 */
 
-function sendToServer(msg) {
-  console.log(msg);
-}
-
 function receiveFromServer(msg) {
+  var data = msg.data;
+  if (Math.random() > 0.99) { console.log(msg); }
+    
   // msg is a series of sprites, need to draw them.
   
   // clear the canvas
   $("#canvas").html("");
   
-  $.each(msg, function (i, sprite) {
+  $.each(data, function (i, sprite) {
     if (sprite.type == "player") {
       var s = makeSprite(40, 60, "../../media/hat_new_2.png");
       s.draw(sprite.x, sprite.y, Math.round((sprite.facing / (Math.PI*2))*36) % 36);
@@ -71,17 +70,23 @@ var keyCodes = {
   "32": "shoot"
 };
 
+var socket;
+var keyboardState = {};
+
 function sendKey(cmd, down) {
-  if (cmd) {
-    sendToServer({
-      "cmd": cmd,
-      "down": down
-    });
-  }
+  if (!cmd) { return; }
+  var msg = {
+    "cmd": cmd,
+    "down": down
+  };
+  socket.send(msg);
 }
 
-var keyboardState = {};
-function keyboardInit() {
+function clientInit() {
+  socket = new io.Socket(null, { port: 8080 }); 
+	socket.connect();
+ 	socket.on('message', receiveFromServer);
+  
   $(document).keydown(function (e) {
     var code = e.keyCode;
     if (!keyboardState[code]) {
@@ -99,4 +104,5 @@ function keyboardInit() {
     }
   });
 }
-$(keyboardInit);
+
+$(clientInit);

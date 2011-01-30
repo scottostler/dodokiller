@@ -9,16 +9,20 @@ var server = http.createServer(function(req, res) {});
 server.listen(8080);
 var socket = io.listen(server);
 
+Clients = {};
+
 function broadcastState() {
-	// TODO
+	var state = game.serializeGameState();
+	socket.broadcast({ data: state });
 }
 
 function handleIncomingMessage(playerId, msg) {
-	if (playerId in keyboardState) {
+  // UGLY keyboard state abstraction
+	if (playerId in game.keyboardState) {
 	  if (msg.down) {
-	    keyboardState[playerId][msg.cmd] = true;
+	    game.keyboardState[playerId][msg.cmd] = true;
 	  } else {
-	    delete keyboardState[playerId][msg.cmd];
+	    delete game.keyboardState[playerId][msg.cmd];
 	  }
 	} else {
 	  console.warn("Missing keyboard state for player " +  playerId);
@@ -26,18 +30,15 @@ function handleIncomingMessage(playerId, msg) {
 }
 
 socket.on('connection', function(client) {
-	console.log("connect " + client.sessionId);
-	
-	connectPlayer(client.sessionId);
+	game.connectPlayer(client.sessionId);
 	
 	client.on('message', function(o) {
 		handleIncomingMessage(client.sessionId, o);
 	});
 	
 	client.on('disconnect', function() {
-		disconnectPlayer(client.sessionId);
-		console.log("disconnect " + client.sessionId);
+		game.disconnectPlayer(client.sessionId);
 	});
 });
 
-gameLoop(broadcastState);
+game.gameLoop(broadcastState);

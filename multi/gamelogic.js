@@ -43,37 +43,41 @@ function makeRandomDodos() {
 }
 
 exports.gameInit = function() {
-  
+  makeRandomDodos();
 }
 
-gameLoop = function() {
+gameLoop = function(callback) {
   // look at keyboard and move players
   // move bullets
   // kill dodos
-  
-  agents.forEach(function (agent, i) {
-    if (!agent.destroyed) {
-      agent.update();
-      agent.draw();
+
+  var loop = function() {
+    agents.forEach(function (agent, i) {
+      if (!agent.destroyed) {
+        agent.update();
+      }
+    });
+
+    // clean up destroyed agents
+    var i = 0;
+    while (i < agents.length) {
+      var agent = agents[i];
+      if (agent.destroyed) {
+        agents.splice(i, 1);
+        } else i++;
+      }
+
+    if (callback) {
+      callback();
     }
-  });
-  
-  // clean up destroyed agents
-  var i = 0;
-  while (i < agents.length) {
-    var agent = agents[i];
-    if (agent.destroyed) {
-      agents.splice(i, 1);
-    } else i++;
-  }
-  
-  setTimeout(gameLoop, env.gameSpeed);
+  };
+  setInterval(loop, env.gameSpeed);
 }
 
-//exports.gameLoop = gameLoop;
+exports.gameLoop = gameLoop;
 
 var env = {
-  gameSpeed: 1, // frames per "millisecond" (changes based on browser...)
+  gameSpeed: 20, // frames per "millisecond" (changes based on browser...)
   playingFieldDimensions: [500, 500], // pixels
   playerRotateSpeed: 2*Math.PI/170, // radians per frame
   playerMoveSpeed: 1.8, // pixels per frame
@@ -106,12 +110,18 @@ function makePlayer(x, y, playerId, name) {
   var facing = 0;
   var readyToShoot = 0; // 0 means ready to shoot
   
-  var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
+  //var sprite = makeSprite(40, 60, "../media/hat_new_2.png");
   // var sprite = makeSprite(40, 40, "../media/hat_p1_sheet.png");
   
+  keyboardState[playerId] = {};
+  
   var player = makeAgent();
-
+  
   player.playerId = playerId;
+  
+  player.serialize = function() {
+    return { type: "player", x: x, y: y, facing: facing };
+  }
   
   player.shoot = function () {
     if (readyToShoot == 0) {
@@ -121,7 +131,7 @@ function makePlayer(x, y, playerId, name) {
   };
   
   player.update = function () {
-    if (!keyboardState[playerId]) {
+    if (keyboardState[playerId] === undefined) {
       console.error("Missing keyboard state for player " + playerId);
       return;
     }
@@ -156,12 +166,16 @@ function makePlayer(x, y, playerId, name) {
     sprite.draw(x, y, Math.round((facing / (Math.PI*2))*36) % 36);
   };
   
-  // TODO
-  // player.win = function () {
-  //   $("#wins").html(name + " Wins!");
-  //   // make more dodos
-  //   makeRandomDodos();
-  // };
+  var oldDestroy = player.destroy;
+  player.destroy = function() {
+    delete keyboardState[playerId];
+    oldDestroy();
+  }
+  
+  player.win = function () {
+    // TODO: announce winnner
+     makeRandomDodos();
+  };
   
   return player;
 }
@@ -169,7 +183,11 @@ function makePlayer(x, y, playerId, name) {
 function makeDodo(x, y) {
   var dodo = makeAgent();
   
-  var sprite = makeSprite(40, 40, "../media/dodo.png");
+  //var sprite = makeSprite(40, 40, "../media/dodo.png");
+  
+  dodo.serialize = function() {
+    return { type: "dodo", x: x, y: y };
+  }
   
   dodo.update = function () {
     
@@ -186,7 +204,6 @@ function makeDodo(x, y) {
   
   var oldDestroy = dodo.destroy;
   dodo.destroy = function () {
-    sprite.destroy();
     oldDestroy();
   };
 }
@@ -196,7 +213,11 @@ function makeBullet(x, y, facing, player) {
   
   var bullet = makeAgent();
   
-  var sprite = makeSprite(6, 6, "../media/bullet.png");
+  // var sprite = makeSprite(6, 6, "../media/bullet.png");
+  
+  bullet.serialize = function() {
+    return { type: "bullet", x: x, y: y };
+  }
   
   bullet.update = function () {
     x += Math.cos(facing) * env.bulletMoveSpeed;
@@ -238,12 +259,20 @@ function makeBullet(x, y, facing, player) {
   
   var oldDestroy = bullet.destroy;
   bullet.destroy = function () {
-    sprite.destroy();
+    // sprite.destroy();
     oldDestroy();
   };
 }
 
-function connectPlayer(playerId) {
+
+
+exports.serializeGameState = function() {
+  return agents.map(function(agent, i) {
+    return agent.serialize();
+  });
+}
+
+exports.connectPlayer = function(playerId) {
 	makePlayer(
 	  Math.random() * 500,
 	  Math.random() * 500,
@@ -252,7 +281,7 @@ function connectPlayer(playerId) {
 	  "Player " + playerId);
 }
 
-function disconnectPlayer(playerId) {
+exports.disconnectPlayer = function(playerId) {
   var player = lookupPlayer(playerId);
   // TODO: send broadcast message
   if (player) {
