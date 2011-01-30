@@ -64,7 +64,7 @@ function receiveFromServer(msg) {
     
     // play starts again when the server sends a dodo create after a win screen
     if (gameState === "win" && event.event === "create" && event.type === "dodo") {
-      restart_music("snd_music_copeland2");
+      restart_music("snd_music_copland2")
       gameState = "playing";
       $(".popup").hide();
     }
@@ -81,7 +81,7 @@ function receiveFromServer(msg) {
        
         s = makeSprite(40, 40, asset, event.type);
       } else if (event.type == "dodo") {
-        s = makeSprite(40, 40, "../../media/dodo.png", event.type);
+        s = makeSprite(40, 40, "../../media/dodo2.png", event.type);
       } else if (event.type == "bullet") {
         play_sound("snd_shot2");
         s = makeSprite(6, 6, "../../media/bullet.png", event.type);
@@ -215,6 +215,9 @@ function clientInit() {
   $("#nameEntry").keydown(function (e) {
     if (e.keyCode === 13) login();
   });
+
+  // start music playing
+  restart_music("snd_music_copland2")
   
 }
 

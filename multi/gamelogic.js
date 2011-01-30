@@ -182,13 +182,45 @@ function makePlayer(x, y, playerId, name) {
       dirty = true;
     }
     if (keyboardState[playerId].forward) {
-      x += Math.cos(facing) * env.playerMoveSpeed;
-      y += Math.sin(facing) * env.playerMoveSpeed;
+        
+        var nx = x + Math.cos(facing) * env.playerMoveSpeed;
+        var ny = y + Math.sin(facing) * env.playerMoveSpeed;
+
+          var found = false;
+          agents.forEach( function (agent, i) {
+            if (agent != player && agent.isHit && agent.isHit(nx, ny, env.dodoPlayerRadius)) {
+              found = agent;
+            }
+          }
+          );
+
+          if(!world.collide(nx, ny, true) && inBounds(nx, ny) && !found)
+          {
+              x = nx; 
+              y = ny;
+          }
+          
       dirty = true;
     }
     if (keyboardState[playerId].backward) {
-      x -= Math.cos(facing) * env.playerMoveSpeed;
-      y -= Math.sin(facing) * env.playerMoveSpeed;
+        
+         var nx = x - Math.cos(facing) * env.playerMoveSpeed;
+         var ny = y - Math.sin(facing) * env.playerMoveSpeed;
+
+          var found = false;
+          agents.forEach( function (agent, i) {
+              if (agent != player && agent.isHit && agent.isHit(nx, ny, env.dodoPlayerRadius)) {
+                found = agent;
+              }
+            }
+            );
+
+          if(!world.collide(nx, ny, true) && inBounds(nx, ny) && !found)
+          {
+                x = nx; 
+                y = ny;
+          }
+          
       dirty = true;
     }
     
@@ -222,6 +254,12 @@ function makePlayer(x, y, playerId, name) {
     oldDestroy();
   }
   
+  player.isHit = function (bulletX, bulletY, rad) {
+        var distance = Math.sqrt(Math.pow(bulletX - x, 2) + Math.pow(bulletY - y, 2));
+        if (distance < rad) return true;
+        else return false;
+      };
+  
   player.win = function () {
     agentEvents.push({ event: 'win', name: name });
     setTimeout(gameInit, env.delayBetweenRounds);
@@ -236,6 +274,11 @@ function gaussian() {
 
 function makeDodo(x, y) {
   var dodo = makeAgent();
+  
+  var facing = 0;
+    var moving = true;
+    var velocity = 0;
+    var colliding = false;
   
   dodo.serialize = function(eventType) {
     return { event: eventType, type: "dodo", id: dodo.objectId, x: x, y: y };
@@ -309,11 +352,24 @@ function makeBullet(x, y, facing, player) {
   agentEvents.push(bullet.serialize('create'));
   
   bullet.update = function () {
-    x += Math.cos(facing) * env.bulletMoveSpeed;
-    y += Math.sin(facing) * env.bulletMoveSpeed;
+    
+      var nx = x + Math.cos(facing) * env.bulletMoveSpeed;
+      var ny = y + Math.sin(facing) * env.bulletMoveSpeed;
+
+      var collided = false;
+      if(!world.collide(nx, ny, false))
+      {
+        x = nx; 
+        y = ny;
+      }
+      else
+      {
+        collided = true;
+        bullet.destroy();
+      }
     
     distanceTravelled += env.bulletMoveSpeed;
-    if (distanceTravelled >= env.bulletTravelDistance) {
+    if (distanceTravelled >= env.bulletTravelDistance && !collided) {
       bullet.destroy();
     }
     
@@ -384,4 +440,11 @@ exports.disconnectPlayer = function(playerId) {
   } else {
     console.warn("Unable to find player record for disconnected player " + playerId);
   }
+}
+
+function inBounds(x, y){
+    if(x > 0 && x < env.playingFieldDimensions[0] && y > 0 && y < env.playingFieldDimensions[1])
+        return true;
+    else
+        return false;
 }
