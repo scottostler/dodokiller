@@ -44,6 +44,9 @@ sprites (server to client)
 
 */
 
+WIN_WIDTH = 800;
+WIN_HEIGHT = 800;
+
 var sprites = {};
 
 function radiansToSprite(facing) {
@@ -55,7 +58,7 @@ function radiansToSprite(facing) {
 function receiveFromServer(msg) {
   var data = msg.data;
   
-  world = makeWorld(1600, 1600, 20);
+  
   
   $.each(data, function (i, event) {
     
@@ -106,7 +109,7 @@ function receiveFromServer(msg) {
       $("#countdown").text("6");
       doCountdown();
     }   else if (event.event === "world") {
-        world = world.initializeFromData(event.width, event.height, event.objects, event.gridSize);
+        world.initializeFromData(event.width, event.height, event.objects, event.gridSize);
         world.draw();
       }
     
@@ -180,6 +183,9 @@ function sendKey(cmd, down) {
 }
 
 function clientInit() {
+    
+    world = makeWorld(1600, 1600, 20);
+    
   socket = new io.Socket(null, { port: 8080 }); 
  	socket.on('message', receiveFromServer);
 	socket.connect();

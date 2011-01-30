@@ -94,12 +94,11 @@ exports.makeWorld = function(width, height, gridSize) {
  
            for(var j = 0; j < world.grid[i].length; j++)
            {
-           
                if(world.grid[i][j] == 0 
                    && (i == 0 || world.grid[i-1][j] > 0)
-                   && (i+1 >= world.width || world.grid[i+1][j] > 0)
+                   && (i+1 >= world.grid.length || world.grid[i+1][j] > 0)
                    && (j == 0 || world.grid[i][j-1] > 0)
-                   && (j+1 >= world.height || world.grid[i][j+1] > 0)
+                   && (j+1 >= world.grid[i].length || world.grid[i][j+1] > 0)
                    )
                {
            
@@ -116,12 +115,13 @@ exports.makeWorld = function(width, height, gridSize) {
         
     };
     
-    world.collide = function(x, y, collideWithWater) {
+    world.collide = function(x, y, collideWithWater, radius) {
         
         var coll = false;
         
         world.objects.forEach(function (ob, i) {
-           if(Math.round(x/world.gridSize) == ob.x && Math.round(y/world.gridSize) == ob.y)
+          // if(Math.round(x/world.gridSize) == ob.x && Math.round(y/world.gridSize) == ob.y)
+           if(distance(ob.x * gridSize, ob.y * gridSize, x, y) < radius)
            {
                if(ob.type == "water")
                     coll = collideWithWater;
@@ -134,6 +134,10 @@ exports.makeWorld = function(width, height, gridSize) {
     };
     
     return world;
+}
+
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 
 function makeObject(x, y, type) {

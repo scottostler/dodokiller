@@ -2,9 +2,9 @@ var worldModule = require('./world.js');
 
 var env = {
   gameSpeed: 10, // frames per "millisecond" (changes based on browser...)
-  playingFieldDimensions: [1200, 600], // pixels
-  worldGridSize: 20,
-  worldFrequency: 0.005,
+  playingFieldDimensions: [1600, 1200], // pixels
+  worldGridSize: 20, // pixel size of single world terrain tile
+  worldFrequency: 0.005, // density of generated terrain
   playerRotateSpeed: 3*Math.PI/170, // radians per frame
   playerMoveSpeed: 4, // pixels per frame
   playerReloadTime: 40, // frames
@@ -52,14 +52,15 @@ function initializeWorld() {
     env.playingFieldDimensions[1],
     env.worldGridSize);
   world.generate(env.worldFrequency);
-  console.log(world.serialize());
   agentEvents.push(world.serialize());
 }
 
-exports.gameInit = function() {
+var gameInit = function() {
   initializeWorld();
   makeRandomDodos();
 }
+
+exports.gameInit = gameInit;
 
 gameLoop = function(roundCallback) {
   // look at keyboard and move players
@@ -139,7 +140,8 @@ function makePlayer(x, y, playerId, name) {
     var event = { 
       event: eventType,
       type: "player", 
-      id: player.objectId, 
+      id: player.objectId,
+      name: name,
       x: x,
       y: y,
       facing: facing
@@ -167,6 +169,9 @@ function makePlayer(x, y, playerId, name) {
     
     var dirty = false;
     
+    var oldX = x;
+    var oldY = y;
+    
     // based on keyCodes (specific to the player) and keyboardState, update facing and position
     if (keyboardState[playerId].left) {
       facing -= env.playerRotateSpeed;
@@ -190,8 +195,11 @@ function makePlayer(x, y, playerId, name) {
     x = constrain(x, env.playingFieldDimensions[0], env.playerRadius);
     y = constrain(y, env.playingFieldDimensions[1], env.playerRadius);
     
-    if (dirty) {
-      agentEvents.push(player.serialize('update'));
+    if (dirty && world.collide(x, y, true, env.playerRadius)) {
+      x = oldX;
+      y = oldY;
+    } else if (dirty) {
+      agentEvents.push(player.serialize('update'));      
     }
     
     if (keyboardState[playerId].shoot) {
@@ -247,6 +255,9 @@ function makeDodo(x, y) {
     }
     
     if (Math.random() > env.dodoMoveProbability && velocity > 0) {
+      var oldX = x;
+      var oldY = y;
+      
       x += Math.cos(facing) * env.dodoMoveSpeed * velocity;
       y += Math.sin(facing) * env.dodoMoveSpeed * velocity;
 
@@ -255,7 +266,12 @@ function makeDodo(x, y) {
       x = constrain(x, env.playingFieldDimensions[0], env.dodoRadius);
       y = constrain(y, env.playingFieldDimensions[1], env.dodoRadius);
       
-      agentEvents.push(dodo.serialize('update'));
+      if (world.collide(x, y, true, env.dodoRadius)) {
+        x = oldX;
+        y = oldY;
+      } else {
+        agentEvents.push(dodo.serialize('update'));        
+      }
     }
   };
   
