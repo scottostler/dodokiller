@@ -1,0 +1,20 @@
+
+keyboard (client to server)
+    {
+        "direction": "forward" | "backward" | "left" | "right",
+        "down": true | false
+    }
+
+
+
+sprites (server to client)
+    [
+        {
+            "type": "player" | "dodo" | "bullet",
+            "x": NUMBER, // int, pixels
+            "y": NUMBER, // int, pixels
+            "facing": NUMBER // float, radians (and only for player)
+        },
+        ...
+    ]
+
