@@ -66,7 +66,7 @@ function receiveFromServer(msg) {
       } else if (event.type == "dodo") {
         s = makeSprite(40, 40, "../../media/dodo.png");
       } else if (event.type == "bullet") {
-        play_sound("snd_shot1");
+        play_sound("snd_shot2");
         s = makeSprite(6, 6, "../../media/bullet.png");
       }
       s.draw(event.x, event.y, radiansToSprite(event.facing));
