@@ -1,0 +1,10 @@
+
+pew.wav: bnewbold
+magpie: http://www.freesound.org/samplesViewSingle.php?id=42793
+ww2rifle: http://soundbible.com/1334-World-War-2-Rifle.html
+shotgun: http://soundbible.com/1706-Shot-Gun.html
+fanfare: http://www.freesound.org/samplesViewSingle.php?id=110317
+
+death metal music: Mental Killing Spree - Vae Victis
+
+

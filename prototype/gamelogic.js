@@ -30,10 +30,15 @@ game state consists of
 
 */
 
+<<<<<<< HEAD
 
 
 WIDTH = 1000;
 HEIGHT = 800;
+=======
+settingKeyCodes = { toggle_music:81, /* 'q' */
+                    }
+>>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
 
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
@@ -54,7 +59,25 @@ function makeRandomDodos() {
 
 function gameInit() {
   // position players
+<<<<<<< HEAD
   
+=======
+  makePlayer(200, 200, {
+    forward: 87,
+    backward: 83,
+    left: 65,
+    right: 68,
+    shoot: 16
+  }, "Player 1");
+  makePlayer(300, 300, {
+    forward: 80,
+    backward: 186,
+    left: 76,
+    right: 222,
+    shoot: 77
+  }, "Player 2");
+
+>>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
   
   // position dodos
   
@@ -62,6 +85,7 @@ function gameInit() {
   world = makeWorld(WIDTH, HEIGHT, 20);
   world.generate(0.005);
   world.draw();
+<<<<<<< HEAD
   
   var x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 
@@ -92,6 +116,12 @@ function gameInit() {
       }, "Player 2");
       
 makeRandomDodos();
+=======
+
+  // start music
+  restart_music("snd_metal_music");      
+  pause_music();  // it's kind of annoying...
+>>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
 }
 
 function gameLoop() {
@@ -163,6 +193,7 @@ function makePlayer(x, y, keyCodes, name) {
   
   player.shoot = function () {
     if (readyToShoot == 0) {
+      play_sound("snd_shot1");      
       makeBullet(x, y, facing, player);
       readyToShoot = env.playerReloadTime;
     }
@@ -205,6 +236,7 @@ function makePlayer(x, y, keyCodes, name) {
     // design decision: hold to keep firing or fire on every key press?
     if (readyToShoot > 0) readyToShoot--;
     
+<<<<<<< HEAD
     // collide w dodos
     var found = false;
     $.each(agents, function (i, agent) {
@@ -221,6 +253,12 @@ function makePlayer(x, y, keyCodes, name) {
       found.setPushed(false, this);
     }
     
+=======
+    // other game controls go down here...
+    if (keyboardState[settingKeyCodes.toggle_music]) {
+      toggle_music();
+    }
+>>>>>>> 77820d461bee5d7bb3efaa72689595ca6feb4095
   };
   
   player.draw = function () {
@@ -229,6 +267,9 @@ function makePlayer(x, y, keyCodes, name) {
   
   player.win = function () {
     $("#wins").html(name + " Wins!");
+
+    //pause_music();
+    play_sound("snd_victory"); 
     // make more dodos
     makeRandomDodos();
   };
@@ -362,6 +403,7 @@ function makeBullet(x, y, facing, player) {
     });
     if (found) {
       // kill the dodo!
+      play_sound("snd_squawk");      
       found.destroy();
       bullet.destroy();
       

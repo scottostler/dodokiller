@@ -12,21 +12,12 @@ var socket = io.listen(server);
 Clients = {};
 
 function broadcastState() {
-	var state = game.serializeGameState();
+	var state = game.serializeAndClearGameState();
 	socket.broadcast({ data: state });
 }
 
 function handleIncomingMessage(playerId, msg) {
-  // UGLY keyboard state abstraction
-	if (playerId in game.keyboardState) {
-	  if (msg.down) {
-	    game.keyboardState[playerId][msg.cmd] = true;
-	  } else {
-	    delete game.keyboardState[playerId][msg.cmd];
-	  }
-	} else {
-	  console.warn("Missing keyboard state for player " +  playerId);
-	}
+  game.setKeyboardState(playerId, msg.down, msg.cmd);
 }
 
 socket.on('connection', function(client) {
