@@ -12,6 +12,20 @@ function makeWorld(width, height, gridSize) {
     world.eye_x = 0;
     world.eye_y = 0;
     
+    world.initializeFromData = function(w, h, obs, gs) {
+        world.width = w;
+        world.height = h;
+        
+        world.gridSize = gs;
+        world.objects = [];
+        
+        $.each(obs, function (i, ob) {
+           var o = makeObject(ob.x, ob.y, ob.type);
+           world.objects.push(o);
+        });
+        
+    }
+    
     world.setEye = function(x, y) {
         world.eye_x = x;
         world.eye_y = y;
