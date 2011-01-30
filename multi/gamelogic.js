@@ -53,7 +53,8 @@ var agentEvents = [];
 
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
-    makeDodo(Math.random() * 500, Math.random() * 500);
+    var coord = makeRandomCoordinate(env.dodoRadius);
+    makeDodo(coord[0], coord[1]);
   }
 }
 
@@ -93,7 +94,7 @@ exports.gameLoop = gameLoop;
 
 var env = {
   gameSpeed: 10, // frames per "millisecond" (changes based on browser...)
-  playingFieldDimensions: [500, 500], // pixels
+  playingFieldDimensions: [1200, 600], // pixels
   playerRotateSpeed: 2*Math.PI/170, // radians per frame
   playerMoveSpeed: 1.8, // pixels per frame
   playerReloadTime: 40, // frames
@@ -102,6 +103,12 @@ var env = {
   dodoRadius: 20, // pixels, refers to how close bullets have to be to kill
   playerRadius: 20 // pixels, used to prevent sprites from leaving screen
 };
+
+function makeRandomCoordinate(padding) {
+  var x = Math.random() * (env.playingFieldDimensions[0] - 2 * padding) + padding;
+  var y = Math.random() * (env.playingFieldDimensions[1] - 2 * padding) + padding;
+  return [x, y];
+}
 
 function constrain(val, max, padding) {
   return Math.max(
@@ -332,10 +339,9 @@ exports.connectPlayer = function(playerId) {
 	  state.event = 'create';
 	  return state;
 	});
-
+  var coord = makeRandomCoordinate(env.playerRadius);
 	makePlayer(
-	  Math.random() * 500,
-	  Math.random() * 500,
+    coord[0], coord[1],
 	  playerId,
 	  "Player " + playerId);  // TODO: better names
 	return agentEvents;

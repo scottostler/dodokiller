@@ -13,6 +13,23 @@
   
 </head>
 <body>
-  <div id='canvas'> </div>
+  <div id="canvas"></div>
+  
+  <div id="introscreen" class="popup">
+    <div id="title">Safari!</div>
+    
+    <div id="entername">
+      Enter your Safari name: <input type="text" id="nameEntry" /> <button id="start">Hunt!</button>
+    </div>
+    
+    <div id="instructions"><b>Objective:</b> Kill the last dodo!</div> 
+  </div>
+  
+  <div id="winscreen" class="popup" style="display:none">
+    Congratulations <b id="winnerName"></b>!<br />
+    You killed the last dodo!
+    <br /><br />
+    Next game in <b id="countdown">5</b>...
+  </div>
 </body>
 </html>

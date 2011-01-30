@@ -9,8 +9,9 @@ PROTOCOL:
 
 keyboard (client to server)
     {
-        "cmd": "forward" | "backward" | "left" | "right" | "shoot",
-        "down": true | false
+        "cmd": "forward" | "backward" | "left" | "right" | "shoot" | "name",
+        "down": true | false, // if cmd != "name"
+        "name": STRING // if cmd == "name"
     }
 
 sprites (server to client)
@@ -26,8 +27,15 @@ sprites (server to client)
         "x": NUMBER,
         "y": NUMBER,
         "facing": NUMBER // if applicable
+        "name": STRING // if create player
     },
     ...
+    
+    {"event": "win", "name": "Toby"}
+    
+    
+    
+    
   ]
 
 */
@@ -44,6 +52,13 @@ function receiveFromServer(msg) {
   var data = msg.data;
   
   $.each(data, function (i, event) {
+    
+    // play starts again when the server sends a dodo create after a win screen
+    if (gameState === "win" && event.event === "create" && event.type === "dodo") {
+      gameState = "playing";
+      $(".popup").hide();
+    }
+    
     if (event.event === "create") {
       var s;
       if (event.type == "player") {
@@ -60,8 +75,24 @@ function receiveFromServer(msg) {
     } else if (event.event === "destroy") {
       sprites[event.id].destroy();
       delete sprites[event.id];
+    } else if (event.event === "win") {
+      gameState = "win";
+      $("#winnerName").text(event.name);
+      $("#winscreen").show();
+      $("#countdown").text("6");
+      doCountdown();
     }
+    
   });
+}
+
+
+function doCountdown() {
+  var current = +$("#countdown").text();
+  if (current > 0) {
+    $("#countdown").text(current - 1);
+    setTimeout(doCountdown, 1000);
+  }
 }
 
 
@@ -85,10 +116,18 @@ var sampleMessages = [
   ],
   [
     {"event": "update", "id": 0, "x": 200, "y": 200, "facing": 0.1}
+  ],
+  [
+    {"event": "win", "name": "Scotty"}
   ]
   
 ];
 // receiveFromServer({"data":sampleMessages[0]})
+
+
+
+var gameState = "intro"; // this can be "intro", "playing", "win"
+var myName = "";
 
 
 var keyCodes = {
@@ -103,12 +142,14 @@ var socket;
 var keyboardState = {};
 
 function sendKey(cmd, down) {
-  if (!cmd) { return; }
-  var msg = {
-    "cmd": cmd,
-    "down": down
-  };
-  socket.send(msg);
+  if (gameState !== "intro") {
+    if (!cmd) { return; }
+    var msg = {
+      "cmd": cmd,
+      "down": down
+    };
+    socket.send(msg);
+  }
 }
 
 function clientInit() {
@@ -132,6 +173,22 @@ function clientInit() {
       sendKey(cmd, false);
     }
   });
+  
+  $("#start").click(login);
+  $("#nameEntry").keydown(function (e) {
+    if (e.keyCode === 13) login();
+  });
+  
+}
+
+function login() {
+  myName = $("#nameEntry").val();
+  socket.send({
+    "cmd": "name",
+    "name": myName
+  });
+  $(".popup").hide();
+  gameState = "playing";
 }
 
 $(clientInit);
