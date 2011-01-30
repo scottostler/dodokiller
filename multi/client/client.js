@@ -32,9 +32,13 @@ sprites (server to client)
     ...
     
     {"event": "win", "name": "Toby"}
-    
-    
-    
+
+    {"event": "world",
+      width: NUMBER,
+      height: NUMBER,
+      gridSize: NUMBER
+      objects: [{ x: NUMBER, y: NUMBER, type: STRING }],
+    }
     
   ]
 
