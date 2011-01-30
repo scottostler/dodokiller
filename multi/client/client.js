@@ -174,6 +174,8 @@ function clientInit() {
     }
   });
   
+  $("#nameEntry").focus();
+  
   $("#start").click(login);
   $("#nameEntry").keydown(function (e) {
     if (e.keyCode === 13) login();
