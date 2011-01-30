@@ -21,7 +21,8 @@ function handleIncomingMessage(playerId, msg) {
 }
 
 socket.on('connection', function(client) {
-	game.connectPlayer(client.sessionId);
+	var initState = game.connectPlayer(client.sessionId);
+	client.send({ data: initState, init: true });
 	
 	client.on('message', function(o) {
 		handleIncomingMessage(client.sessionId, o);

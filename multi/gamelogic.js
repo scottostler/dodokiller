@@ -108,7 +108,6 @@ function makeAgent() {
   var agent = {};
   
   agent.objectId = ++objectId;
-  agent.dirty = false;
   agents.push(agent);
   
   agent.destroy = function () {
@@ -158,24 +157,32 @@ function makePlayer(x, y, playerId, name) {
       return;
     }
     
+    var dirty = false;
+    
     // based on keyCodes (specific to the player) and keyboardState, update facing and position
     if (keyboardState[playerId].left) {
       facing -= env.playerRotateSpeed;
-      player.dirty = true;
+      dirty = true;
     }
     if (keyboardState[playerId].right) {
       facing += env.playerRotateSpeed;
-      player.dirty = true;
+      dirty = true;
     }
     if (keyboardState[playerId].forward) {
       x += Math.cos(facing) * env.playerMoveSpeed;
       y += Math.sin(facing) * env.playerMoveSpeed;
-      player.dirty = true;
+      dirty = true;
     }
     if (keyboardState[playerId].backward) {
       x -= Math.cos(facing) * env.playerMoveSpeed;
       y -= Math.sin(facing) * env.playerMoveSpeed;
-      player.dirty = true;
+      dirty = true;
+    }
+    
+    if (dirty) {
+      var state = player.serialize();
+      state.event = 'update';
+      agentEvents.push(state);
     }
     
     if (keyboardState[playerId].shoot) {
@@ -214,11 +221,10 @@ function makeDodo(x, y) {
   }
   
   var agentState = dodo.serialize();
-  agentState['event'] = 'create';
+  agentState.event = 'create';
   agentEvents.push(agentState);
   
   dodo.update = function () {
-    
   };
   
   dodo.draw = function () {
@@ -246,15 +252,13 @@ function makeBullet(x, y, facing, player) {
     return { type: "bullet", id: bullet.objectId, x: x, y: y };
   }
   
-  var agentState = dodo.serialize();
+  var agentState = bullet.serialize();
   agentState['event'] = 'create';
   agentEvents.push(agentState);
   
   bullet.update = function () {
     x += Math.cos(facing) * env.bulletMoveSpeed;
     y += Math.sin(facing) * env.bulletMoveSpeed;
-    
-    bullet.dirty = true;
     
     distanceTravelled += env.bulletMoveSpeed;
     if (distanceTravelled >= env.bulletTravelDistance) {
@@ -284,6 +288,11 @@ function makeBullet(x, y, facing, player) {
         player.win();
       }
     }
+    if (!bullet.destroyed) {
+      var state = bullet.serialize();
+      state.event = 'update';
+      agentEvents.push(state);
+    }
   };
   
   bullet.draw = function () {
@@ -299,30 +308,29 @@ function makeBullet(x, y, facing, player) {
 exports.serializeAndClearGameState = function() {
   var output = agentEvents;
   agentEvents = [];
-  
-  agents.forEach(function(agent) {
-    if (agent.dirty) {
-      var agentState = agent.serialize();
-      agentState.event = "update";
-      output.push(agentState);
-      agent.dirty = false;
-    }
-  });
-  return output;
+  return output;  
 }
 
 exports.connectPlayer = function(playerId) {
+  // note that this doesn't contain the creation event
+  // for this player's character -- that will be sent on the
+  // next game loop.
+	var agentEvents = agents.map(function(agent) {
+	  var state = agent.serialize();
+	  state.event = 'create';
+	  return state;
+	});
+
 	makePlayer(
 	  Math.random() * 500,
 	  Math.random() * 500,
 	  playerId,
-	  // TODO: better names
-	  "Player " + playerId);
+	  "Player " + playerId);  // TODO: better names
+	return agentEvents;
 }
 
 exports.disconnectPlayer = function(playerId) {
   var player = lookupPlayer(playerId);
-  // TODO: send broadcast message
   if (player) {
     player.destroy();
   } else {
