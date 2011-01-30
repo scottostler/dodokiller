@@ -62,7 +62,9 @@ function receiveFromServer(msg) {
     if (event.event === "create") {
       var s;
       if (event.type == "player") {
-        s = makeSprite(40, 40, "../../media/hat_3.png");
+        var asset = "../../media/hat_3.png";
+        if (event.name === myName) asset = "../../media/hat_3_highlight.png";
+        s = makeSprite(40, 40, asset);
       } else if (event.type == "dodo") {
         s = makeSprite(40, 40, "../../media/dodo.png");
       } else if (event.type == "bullet") {
