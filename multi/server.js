@@ -16,16 +16,20 @@ function broadcastState() {
 	socket.broadcast({ data: state });
 }
 
-function handleIncomingMessage(playerId, msg) {
-  game.setKeyboardState(playerId, msg.down, msg.cmd);
+function handleIncomingMessage(client, playerId, msg) {
+  if (msg.cmd == "name") {
+    game.connectPlayer(playerId, msg.name);
+  } else {
+    game.setKeyboardState(playerId, msg.down, msg.cmd);
+  }
 }
 
 socket.on('connection', function(client) {
-	var initState = game.connectPlayer(client.sessionId);
-	client.send({ data: initState, init: true });
-	
-	client.on('message', function(o) {
-		handleIncomingMessage(client.sessionId, o);
+  var initState = game.serializeInitializingState();
+  client.send({ data: initState });
+  
+	client.on('message', function(msg) {
+		handleIncomingMessage(client, client.sessionId, msg);
 	});
 	
 	client.on('disconnect', function() {
