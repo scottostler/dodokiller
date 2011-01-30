@@ -55,6 +55,8 @@ function radiansToSprite(facing) {
 function receiveFromServer(msg) {
   var data = msg.data;
   
+  world = makeWorld(1600, 1600, 20);
+  
   $.each(data, function (i, event) {
     
     // play starts again when the server sends a dodo create after a win screen
@@ -67,7 +69,12 @@ function receiveFromServer(msg) {
       var s;
       if (event.type == "player") {
         var asset = "../../media/hat_3.png";
-        if (event.name === myName) asset = "../../media/hat_3_highlight.png";
+        if (event.name === myName) 
+        {
+            asset = "../../media/hat_3_highlight.png";
+            world.setEye(event.x,event.y);
+        }
+       
         s = makeSprite(40, 40, asset, event.type);
       } else if (event.type == "dodo") {
         s = makeSprite(40, 40, "../../media/dodo.png", event.type);
@@ -79,6 +86,11 @@ function receiveFromServer(msg) {
       sprites[event.id] = s;
     } else if (event.event === "update") {
       sprites[event.id].draw(event.x, event.y, radiansToSprite(event.facing));
+      
+      if (event.type == "player" && event.name === myName) {
+          world.setEye(event.x,event.y);
+      }
+      
     } else if (event.event === "destroy") {
       console.warn(event);
       if(sprites[event.id].type == "dodo") {  
@@ -93,7 +105,10 @@ function receiveFromServer(msg) {
       $("#winscreen").show();
       $("#countdown").text("6");
       doCountdown();
-    }
+    }   else if (event.event === "world") {
+        world = world.initializeFromData(event.width, event.height, event.objects, event.gridSize);
+        world.draw();
+      }
     
   });
 }
