@@ -1,36 +1,29 @@
-/*
+var worldModule = require('./world.js');
 
-game parameters
-  game speed
-  playing field dimensions
-  player rotate speed
-  player move speed
-  bullet move speed
-  bullet travel distance
-
-
-game state consists of
-  players
-    facing (angle)
-    position
-      x
-      y
-  bullets
-    facing (angle)
-    position
-      x
-      y
-    distance (how far it's travelled)
-  dodos
-    position
-      x
-      y
-  obstruction
-    function to determine whether a pixel is on or off limits
-
-*/
+var env = {
+  gameSpeed: 10, // frames per "millisecond" (changes based on browser...)
+  playingFieldDimensions: [1200, 600], // pixels
+  worldGridSize: 20,
+  worldFrequency: 0.005,
+  playerRotateSpeed: 3*Math.PI/170, // radians per frame
+  playerMoveSpeed: 4, // pixels per frame
+  playerReloadTime: 40, // frames
+  bulletMoveSpeed: 8, // pixels per frame
+  bulletTravelDistance: 300, // pixels
+  dodoMoveSpeed: 0.8, // scaling factor for dodo velocity
+  dodoVelocityProbability: 0.992, // chance that a dodo with velocity will move in a frame
+  dodoMoveProbability: 0.7, // chance that a dodo's velocity will be increased in a frame
+  dodoVelocityThreshold: 5.0, // if dodo's velocity is below this, dodo stops moving
+  dodoVelocityDecay: 0.95, // dodo's velocity diminishes by this each frame
+  dodoRadius: 20, // pixels, refers to how close bullets have to be to kill
+  playerRadius: 20, // pixels, used to prevent sprites from leaving screen
+  delayBetweenRounds: 5000 // ms between a player winning and a new round beginning
+};
 
 var keyboardState = {};
+var agents = [];
+var world;
+var agentEvents = []; // Tracks per-cycle agent creation/destruction
 
 var setKeyboardState = function(playerId, isDown, cmd) {
   if (playerId in keyboardState) {
@@ -46,11 +39,6 @@ var setKeyboardState = function(playerId, isDown, cmd) {
 
 exports.setKeyboardState = setKeyboardState;
 
-var agents = [];
-
-// Tracks per-cycle agent creation/destruction
-var agentEvents = [];
-
 function makeRandomDodos() {
   for (var i = 0; i < 10; i++) {
     var coord = makeRandomCoordinate(env.dodoRadius);
@@ -58,7 +46,18 @@ function makeRandomDodos() {
   }
 }
 
+function initializeWorld() {
+  world = worldModule.makeWorld(
+    env.playingFieldDimensions[0],
+    env.playingFieldDimensions[1],
+    env.worldGridSize);
+  world.generate(env.worldFrequency);
+  console.log(world.serialize());
+  agentEvents.push(world.serialize());
+}
+
 exports.gameInit = function() {
+  initializeWorld();
   makeRandomDodos();
 }
 
@@ -89,20 +88,6 @@ gameLoop = function(roundCallback) {
 }
 
 exports.gameLoop = gameLoop;
-
-var env = {
-  dodoMoveSpeed: 0.5, // pixels per frame
-  gameSpeed: 10, // frames per "millisecond" (changes based on browser...)
-  playingFieldDimensions: [1200, 600], // pixels
-  playerRotateSpeed: 3*Math.PI/170, // radians per frame
-  playerMoveSpeed: 4, // pixels per frame
-  playerReloadTime: 40, // frames
-  bulletMoveSpeed: 8, // pixels per frame
-  bulletTravelDistance: 300, // pixels
-  dodoRadius: 20, // pixels, refers to how close bullets have to be to kill
-  playerRadius: 20, // pixels, used to prevent sprites from leaving screen
-  delayBetweenRounds: 5000 // ms between a player winning and a new round beginning
-};
 
 function makeRandomCoordinate(padding) {
   var x = Math.random() * (env.playingFieldDimensions[0] - 2 * padding) + padding;
@@ -231,7 +216,7 @@ function makePlayer(x, y, playerId, name) {
   
   player.win = function () {
     agentEvents.push({ event: 'win', name: name });
-    setTimeout(makeRandomDodos, env.delayBetweenRounds);
+    setTimeout(gameInit, env.delayBetweenRounds);
   };
   
   return player;
@@ -254,17 +239,18 @@ function makeDodo(x, y) {
   var velocity = 0;
   
   dodo.update = function () {
-    if (Math.random() > .992) {
+    if (Math.random() > env.dodoVelocityChangeProbability) {
         facing += gaussian();
         velocity = gaussian() * 10;
-        if (Math.abs(velocity) < 5.0) velocity = 0;
+        if (Math.abs(velocity) < env.dodoVelocityThreshold)
+          velocity = 0;
     }
     
-    if (velocity > 0) {
+    if (Math.random() > env.dodoMoveProbability && velocity > 0) {
       x += Math.cos(facing) * env.dodoMoveSpeed * velocity;
       y += Math.sin(facing) * env.dodoMoveSpeed * velocity;
 
-      velocity *= .95;
+      velocity *= env.dodoVelocityDecay;
 
       x = constrain(x, env.playingFieldDimensions[0], env.dodoRadius);
       y = constrain(y, env.playingFieldDimensions[1], env.dodoRadius);
@@ -360,9 +346,11 @@ exports.serializeAndClearGameState = function() {
 };
 
 exports.serializeInitializingState = function() {
-  return agents.map(function(agent) {
+  var events = agents.map(function(agent) {
 	  return agent.serialize('create');
 	});
+	events.push(world.serialize());
+	return events;
 };
 
 exports.connectPlayer = function(playerId, name) {
