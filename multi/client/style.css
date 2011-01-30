@@ -16,3 +16,19 @@ body {
   margin-top: -300px;
   margin-left: -600px;
 }
+
+.popup {
+  position: absolute;
+  width: 600px;
+  height: 300px;
+  background-color: #fff;
+  border: 1px solid #666;
+  top: 50%; left: 50%; margin-top: -150px; margin-left: -300px;
+  
+  text-align: center;
+}
+
+
+#title {
+  font-size: 28px;
+}
