@@ -42,13 +42,12 @@ function radiansToSprite(facing) {
 
 function receiveFromServer(msg) {
   var data = msg.data;
-  if (Math.random() > 0.99) { console.log(msg); }
   
   $.each(data, function (i, event) {
     if (event.event === "create") {
       var s;
       if (event.type == "player") {
-        s = makeSprite(40, 40, "../../media/hat3.png");
+        s = makeSprite(40, 40, "../../media/hat_3.png");
       } else if (event.type == "dodo") {
         s = makeSprite(40, 40, "../../media/dodo.png");
       } else if (event.type == "bullet") {
@@ -114,8 +113,8 @@ function sendKey(cmd, down) {
 
 function clientInit() {
   socket = new io.Socket(null, { port: 8080 }); 
-	socket.connect();
  	socket.on('message', receiveFromServer);
+	socket.connect();
   
   $(document).keydown(function (e) {
     var code = e.keyCode;
