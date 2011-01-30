@@ -64,6 +64,7 @@ function receiveFromServer(msg) {
     
     // play starts again when the server sends a dodo create after a win screen
     if (gameState === "win" && event.event === "create" && event.type === "dodo") {
+      restart_music("snd_music_copeland2");
       gameState = "playing";
       $(".popup").hide();
     }
@@ -103,6 +104,7 @@ function receiveFromServer(msg) {
       delete sprites[event.id];
     } else if (event.event === "win") {
       gameState = "win";
+      pause_music();
       play_sound("snd_victory");
       $("#winnerName").text(event.name);
       $("#winscreen").show();
